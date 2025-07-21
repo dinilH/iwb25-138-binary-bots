@@ -55,15 +55,19 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
+
+
               <div className="glass-card p-8 rounded-3xl">
                 <Image
-                  src="/placeholder.svg?height=500&width=600&text=SheCare+Dashboard"
+                  src="/lady_doctor.jpg?height=500&width=600&text=SheCare+Dashboard"
                   alt="SheCare Dashboard"
                   width={600}
                   height={500}
                   className="rounded-2xl shadow-2xl"
                 />
               </div>
+
+
             </motion.div>
           </div>
         </div>
@@ -175,7 +179,7 @@ export default function HomePage() {
             >
               <div className="glass-card p-8 rounded-3xl">
                 <Image
-                  src="/placeholder.svg?height=400&width=500&text=Wellness+Dashboard"
+                  src="/three_woman.jpg?height=400&width=500&text=Wellness+Dashboard"
                   alt="Wellness Dashboard Preview"
                   width={500}
                   height={400}
