@@ -1,0 +1,58 @@
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/contexts/auth-context"
+import { WellnessProvider } from "@/contexts/wellness-context"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
+import ChatbotIcon from "@/components/chatbot-icon"
+import LoadingScreen from "@/components/loading-screen"
+
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "She Care - Women's Health & Wellness Platform",
+  description: "Comprehensive health tracking, period monitoring, and wellness insights for women",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+    generator: 'v0.dev'
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <WellnessProvider>
+              <LoadingScreen />
+              <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-1 pt-16">{children}</main>
+                <Footer />
+                <ChatbotIcon />
+              </div>
+              <Toaster />
+            </WellnessProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
