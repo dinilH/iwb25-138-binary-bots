@@ -65,7 +65,7 @@ export default function SignupPage() {
         >
           <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl">
             <Image
-              src="/placeholder.svg?height=400&width=400&text=Join+SheCare"
+              src="/woman_with_her_phone.jpg?height=400&width=400&text=Join+SheCare"
               alt="Woman smiling"
               fill
               className="object-cover"
