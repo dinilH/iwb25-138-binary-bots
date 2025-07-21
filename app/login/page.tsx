@@ -48,7 +48,7 @@ export default function LoginPage() {
         >
           <div className="relative h-96 rounded-3xl overflow-hidden shadow-2xl">
             <Image
-              src="/placeholder.svg?height=400&width=400&text=Welcome+Back"
+              src="/Firefly_happy_girl.jpg?height=400&width=400&text=Welcome+Back"
               alt="Woman smiling"
               fill
               className="object-cover"
