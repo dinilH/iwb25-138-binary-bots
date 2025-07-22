@@ -78,7 +78,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
-          <p className="text-gray-300">© 2024 SheCare. All rights reserved. Made with ❤️ for women's health.</p>
+          <p className="text-gray-300">© 2024 SheCare. All rights reserved. Made with ❤️ for women's health. -Binary Bots-</p>
         </div>
       </div>
     </footer>
