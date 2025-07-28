@@ -74,7 +74,7 @@ const commonSymptoms = [
 ]
 
 export default function WellnessPage() {
-  const { addWellnessEntry, getWellnessHistory, getWellnessForDate, updateWellnessEntry } = useWellness()
+  const { addWellnessEntry, getWellnessHistory, getWellnessForDate, updateWellnessEntry, isLoading } = useWellness()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false)
   const [isTrendsModalOpen, setIsTrendsModalOpen] = useState(false)
@@ -117,11 +117,11 @@ export default function WellnessPage() {
         energy: todayEntry.energy,
         sleep: todayEntry.sleep,
         sleepQuality: todayEntry.sleepQuality || 3,
-        stress: todayEntry.stress,
+        stress: todayEntry.stress || 3,
         water: todayEntry.water,
-        exercise: todayEntry.exercise,
-        symptoms: todayEntry.symptoms,
-        notes: todayEntry.notes,
+        exercise: todayEntry.exercise || "",
+        symptoms: todayEntry.symptoms || [],
+        notes: todayEntry.notes || "",
       })
     }
   }, [todayEntry])
@@ -183,30 +183,37 @@ export default function WellnessPage() {
     }
   }, [currentEntry, currentTab])
 
-  const handleSubmit = () => {
-    if (todayEntry) {
-      updateWellnessEntry(today, currentEntry)
-    } else {
-      addWellnessEntry({
-        ...currentEntry,
-        date: today,
-      })
-    }
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault() // Prevent any form submission
+    
+    try {
+      if (todayEntry) {
+        await updateWellnessEntry(today, currentEntry)
+      } else {
+        await addWellnessEntry({
+          ...currentEntry,
+          date: today,
+        })
+      }
 
-    setCurrentEntry({
-      mood: 3,
-      energy: 3,
-      sleep: 8,
-      sleepQuality: 3,
-      stress: 3,
-      water: 8,
-      exercise: "",
-      symptoms: [],
-      notes: "",
-    })
-    setIsDialogOpen(false)
-    setCurrentTab("mood")
-    setIsEditing(false)
+      setCurrentEntry({
+        mood: 3,
+        energy: 3,
+        sleep: 8,
+        sleepQuality: 3,
+        stress: 3,
+        water: 8,
+        exercise: "",
+        symptoms: [],
+        notes: "",
+      })
+      setIsDialogOpen(false)
+      setCurrentTab("mood")
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Failed to save wellness entry:', error)
+      // You could add a toast notification here
+    }
   }
 
   const toggleSymptom = (symptom: string) => {
@@ -227,10 +234,12 @@ export default function WellnessPage() {
     })
   }
 
-  const getWeeklyAverage = (field: string) => {
+  const getWeeklyAverage = (field: 'mood' | 'energy' | 'sleep' | 'sleepQuality' | 'stress' | 'water') => {
     if (history.length === 0) return 0
     const weekData = history.slice(0, 7)
-    const sum = weekData.reduce((acc, entry) => acc + (entry[field] || 0), 0)
+    const sum = weekData.reduce((acc, entry) => {
+      return acc + (entry[field] || 0)
+    }, 0)
     return Math.round(sum / weekData.length)
   }
 
@@ -588,10 +597,15 @@ export default function WellnessPage() {
 
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
+                      type="button"
                       onClick={handleSubmit}
-                      className="w-full bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white py-4 text-lg mt-6 shadow-lg"
+                      disabled={isLoading}
+                      className="w-full bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white py-4 text-lg mt-6 shadow-lg disabled:opacity-50"
                     >
-                      {isEditing ? "Update Wellness Entry" : "Save Wellness Entry"}
+                      {isLoading 
+                        ? "Saving..." 
+                        : isEditing ? "Update Wellness Entry" : "Save Wellness Entry"
+                      }
                     </Button>
                   </motion.div>
                 </DialogContent>
@@ -906,16 +920,16 @@ export default function WellnessPage() {
                                   <div>Sleep: {entry.sleep}h</div>
                                   <div>Water: {entry.water} glasses</div>
                                 </div>
-                                {entry.symptoms.length > 0 && (
+                                {(entry.symptoms?.length ?? 0) > 0 && (
                                   <div className="flex flex-wrap gap-1 mt-2">
-                                    {entry.symptoms.slice(0, 3).map((symptom, i) => (
+                                    {entry.symptoms?.slice(0, 3).map((symptom, i) => (
                                       <Badge key={i} variant="secondary" className="text-xs text-white bg-[#FF407D]">
                                         {symptom}
                                       </Badge>
                                     ))}
-                                    {entry.symptoms.length > 3 && (
+                                    {(entry.symptoms?.length ?? 0) > 3 && (
                                       <Badge variant="secondary" className="text-xs text-white bg-[#40679E]">
-                                        +{entry.symptoms.length - 3}
+                                        +{(entry.symptoms?.length ?? 0) - 3}
                                       </Badge>
                                     )}
                                   </div>
@@ -957,16 +971,16 @@ export default function WellnessPage() {
                             <div>
                               Sleep: {entry.sleep}h | Water: {entry.water} glasses
                             </div>
-                            {entry.symptoms.length > 0 && (
+                            {(entry.symptoms?.length ?? 0) > 0 && (
                               <div className="flex flex-wrap gap-1 mt-2">
-                                {entry.symptoms.slice(0, 3).map((symptom, i) => (
+                                {entry.symptoms?.slice(0, 3).map((symptom, i) => (
                                   <Badge key={i} variant="secondary" className="text-xs text-white bg-[#FF407D]">
                                     {symptom}
                                   </Badge>
                                 ))}
-                                {entry.symptoms.length > 3 && (
+                                {(entry.symptoms?.length ?? 0) > 3 && (
                                   <Badge variant="secondary" className="text-xs text-white bg-[#40679E]">
-                                    +{entry.symptoms.length - 3}
+                                    +{(entry.symptoms?.length ?? 0) - 3}
                                   </Badge>
                                 )}
                               </div>
