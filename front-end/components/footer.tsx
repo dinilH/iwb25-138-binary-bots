@@ -9,9 +9,11 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src="/favicon.png"
+                alt="She Care Logo"
+                className="w-8 h-8 rounded-full shadow"
+              />
               <span className="text-xl font-bold">SheCare</span>
             </div>
             <p className="text-gray-300 leading-relaxed">
