@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SheCare Chatbot Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .input-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🩺 SheCare AI Chatbot Test</h1>
+    <p>Test the chatbot functionality with questions about women's health, periods, wellness, and mental health.</p>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="message bot-message">
+            👋 Hello! I'm SheCare AI, your health assistant. I'm here to help with questions about women's health, period tracking, wellness, and mental health. How can I assist you today?
+        </div>
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Ask me about period cramps, mood, sleep, nutrition..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    
+    <div class="status" id="status">Ready to chat!</div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const status = document.getElementById('status');
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            messageInput.value = '';
+            status.textContent = 'Thinking...';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.message, 'bot');
+                    status.textContent = 'Ready to chat!';
+                } else {
+                    throw new Error('Failed to get response');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, I\'m having trouble connecting right now. Please try again later.', 'bot');
+                status.textContent = 'Connection error';
+            }
+        }
+
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Test connection on page load
+        window.onload = async function() {
+            try {
+                const response = await fetch('http://localhost:8080/api/health');
+                if (response.ok) {
+                    status.textContent = 'Connected to SheCare AI';
+                } else {
+                    status.textContent = 'Service unavailable';
+                }
+            } catch (error) {
+                status.textContent = 'Could not connect to chatbot service';
+            }
+        };
+    </script>
+</body>
+</html>

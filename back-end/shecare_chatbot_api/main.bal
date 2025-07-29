@@ -3,8 +3,8 @@ import ballerina/log;
 import ballerina/time;
 
 // Configuration for Gemini API
-configurable string geminiApiKey = "AIzaSyBgbXY9H4pudJ4LN8L2SfX_Uuq6YOTBlls";
-configurable string geminiApiUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
+string geminiApiKey = "AIzaSyBgbXY9H4pudJ4LN8L2SfX_Uuq6YOTBlls";
+string geminiBaseUrl = "https://generativelanguage.googleapis.com";
 
 // CORS configuration
 @http:ServiceConfig {
@@ -56,32 +56,44 @@ service /api on new http:Listener(8080) {
         };
 
         // Call Gemini API
-        http:Client|error geminiClientResult = new (geminiApiUrl);
+        http:Client|error geminiClientResult = new (geminiBaseUrl);
         if (geminiClientResult is http:Client) {
             http:Client geminiClient = geminiClientResult;
 
             do {
                 map<string> headers = {
-                    "Content-Type": "application/json",
-                    "x-goog-api-key": geminiApiKey
+                    "Content-Type": "application/json"
                 };
 
-                http:Response|error responseResult = geminiClient->post("", geminiRequest, headers);
+                string endpoint = "/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + geminiApiKey;
+                http:Response|error responseResult = geminiClient->post(endpoint, geminiRequest, headers);
                 if (responseResult is http:Response) {
                     http:Response response = responseResult;
-                    string|error rawPayload = response.getTextPayload();
-                    string rawPayloadStr = rawPayload is string ? rawPayload : rawPayload.toString();
-                    log:printInfo("Gemini raw response: " + rawPayloadStr);
+                    
+                    if (response.statusCode != 200) {
+                        log:printError("Gemini API returned non-200 status: " + response.statusCode.toString());
+                        string|error errorBody = response.getTextPayload();
+                        string errorStr = errorBody is string ? errorBody : "Unknown error";
+                        log:printError("Error response body: " + errorStr);
+                        return <http:InternalServerError>{body: "API call failed with status: " + response.statusCode.toString()};
+                    }
+                    
                     json|error jsonPayloadResult = response.getJsonPayload();
                     if (jsonPayloadResult is json) {
+                        log:printInfo("Gemini API response: " + jsonPayloadResult.toString());
+                        
                         GeminiResponse|error geminiResponseResult = jsonPayloadResult.cloneWithType(GeminiResponse);
                         if (geminiResponseResult is GeminiResponse) {
                             GeminiResponse geminiResponse = geminiResponseResult;
                             string botMessage = "I'm here to help! Please try asking your question in a different way.";
-                            if (geminiResponse.candidates.length() > 0 &&
-                                geminiResponse.candidates[0].content?.parts.length() > 0) {
-                                botMessage = geminiResponse.candidates[0].content.parts[0].text;
+                            
+                            if (geminiResponse.candidates.length() > 0) {
+                                Candidate firstCandidate = geminiResponse.candidates[0];
+                                if (firstCandidate.content.parts.length() > 0) {
+                                    botMessage = firstCandidate.content.parts[0].text;
+                                }
                             }
+                            
                             ChatResponse chatResponse = {
                                 message: botMessage,
                                 timestamp: time:utcNow(),
@@ -158,18 +170,32 @@ type GenerationConfig record {
 
 type GeminiResponse record {
     Candidate[] candidates;
+    PromptFeedback? promptFeedback?;
 };
 
 type Candidate record {
     ContentResponse content;
+    string? finishReason?;
+    int? index?;
+    SafetyRating[]? safetyRatings?;
 };
 
 type ContentResponse record {
     PartResponse[] parts;
+    string? role?;
 };
 
 type PartResponse record {
     string text;
+};
+
+type PromptFeedback record {
+    SafetyRating[]? safetyRatings?;
+};
+
+type SafetyRating record {
+    string category;
+    string probability;
 };
 
 // Fallback responses for when Gemini API is unavailable
