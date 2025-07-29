@@ -24,7 +24,7 @@ map<WellnessEntry[]> wellnessStore = {};
         allowMethods: ["GET", "POST", "OPTIONS"]
     }
 }
-service /api/wellness on new http:Listener(8080) {
+service /api/wellness on new http:Listener(8082) {
 
     // Health check
     resource function get health() returns json {
