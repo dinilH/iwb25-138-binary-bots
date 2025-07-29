@@ -44,9 +44,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {[
                 { name: "Contact Us", href: "/contact-us" },
-                { name: "Privacy Policy", href: "/privacy" },
-                { name: "Terms of Service", href: "/terms" },
-                { name: "Help Center", href: "/help" },
+              
               ].map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="text-gray-300 hover:text-primary transition-colors">
@@ -67,18 +65,18 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-primary" />
-                <span className="text-gray-300">+1 (555) 123-4567</span>
+                <span className="text-gray-300">+94 77 123 4567</span>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="w-5 h-5 text-primary" />
-                <span className="text-gray-300">San Francisco, CA</span>
+                <span className="text-gray-300">Colombo, Sri Lanka</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
-          <p className="text-gray-300">© 2024 SheCare. All rights reserved. Made with ❤️ for women's health.Binary Bots</p>
+          <p className="text-gray-300">© 2025 SheCare. All rights reserved. Made with ❤️ for women's health.Binary Bots</p>
         </div>
       </div>
     </footer>
