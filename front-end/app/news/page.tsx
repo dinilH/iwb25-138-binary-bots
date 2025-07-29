@@ -5,21 +5,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Bookmark, BookmarkIcon as BookmarkBorder, ListFilterIcon as FilterList } from "lucide-react"
+import { Search, Bookmark, BookmarkIcon as BookmarkBorder, ListFilterIcon as FilterList, RefreshCw, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import Image from "next/image"
-
-interface NewsArticle {
-  id: string
-  title: string
-  description: string
-  url: string
-  imageUrl: string
-  publishedAt: string
-  source: string
-  category: string
-  isBookmarked?: boolean
-}
+import { useNews } from "@/contexts/news-context"
 
 const newsCategories = [
   "All",
@@ -33,161 +22,18 @@ const newsCategories = [
   "Research",
 ]
 
-// Mock news data
-const mockNews: NewsArticle[] = [
-  {
-    id: "1",
-    title: "New Research Shows Benefits of Regular Exercise for Menstrual Health",
-    description:
-      "A comprehensive study reveals how moderate exercise can help regulate menstrual cycles and reduce period pain.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Exercise+Research",
-    publishedAt: "2024-01-15T10:00:00Z",
-    source: "Health Today",
-    category: "Women's Health",
-  },
-  {
-    id: "2",
-    title: "Understanding PCOS: Latest Treatment Options and Lifestyle Changes",
-    description: "Experts discuss the most effective approaches to managing Polycystic Ovary Syndrome in 2024.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=PCOS+Treatment",
-    publishedAt: "2024-01-14T15:30:00Z",
-    source: "Medical News",
-    category: "Reproductive Health",
-  },
-  {
-    id: "3",
-    title: "Mental Health During Pregnancy: What Every Expecting Mother Should Know",
-    description: "A guide to maintaining emotional wellbeing throughout pregnancy and recognizing when to seek help.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Pregnancy+Mental+Health",
-    publishedAt: "2024-01-13T09:15:00Z",
-    source: "Pregnancy Weekly",
-    category: "Mental Health",
-  },
-  {
-    id: "4",
-    title: "Nutrition for Hormonal Balance: Foods That Support Women's Health",
-    description:
-      "Discover which nutrients and foods can help maintain hormonal balance throughout different life stages.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Nutrition+Hormones",
-    publishedAt: "2024-01-12T14:20:00Z",
-    source: "Wellness Journal",
-    category: "Nutrition",
-  },
-  {
-    id: "5",
-    title: "Breaking the Stigma: Talking About Menopause in the Workplace",
-    description: "How companies are creating supportive environments for women experiencing menopause.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Menopause+Workplace",
-    publishedAt: "2024-01-11T11:45:00Z",
-    source: "Career Health",
-    category: "Menopause",
-  },
-  {
-    id: "6",
-    title: "Revolutionary Period Tracking Technology Shows Promise in Clinical Trials",
-    description: "New AI-powered period tracking technology demonstrates 95% accuracy in predicting cycles.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Period+Tech",
-    publishedAt: "2024-01-10T16:00:00Z",
-    source: "Tech Health",
-    category: "Research",
-  },
-  {
-    id: "7",
-    title: "The Science Behind Period Cravings: Why We Want Chocolate",
-    description: "Researchers explain the biological reasons behind food cravings during menstruation.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Period+Cravings",
-    publishedAt: "2024-01-09T13:20:00Z",
-    source: "Science Daily",
-    category: "Research",
-  },
-  {
-    id: "8",
-    title: "Yoga Poses That Can Help Relieve Menstrual Cramps",
-    description: "Gentle yoga sequences designed specifically to ease period discomfort and promote relaxation.",
-    url: "#",
-    imageUrl: "/placeholder.svg?height=200&width=300&text=Yoga+Periods",
-    publishedAt: "2024-01-08T08:15:00Z",
-    source: "Wellness Today",
-    category: "Fitness",
-  },
-]
-
 export default function NewsPage() {
-  const [articles, setArticles] = useState<NewsArticle[]>([])
-  const [filteredArticles, setFilteredArticles] = useState<NewsArticle[]>([])
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-
-  // Load bookmarks from localStorage
-  useEffect(() => {
-    const savedBookmarks = localStorage.getItem("bookmarkedArticles")
-    if (savedBookmarks) {
-      setBookmarkedArticles(JSON.parse(savedBookmarks))
-    }
-  }, [])
-
-  // Simulate API call
-  useEffect(() => {
-    const fetchNews = async () => {
-      setLoading(true)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const articlesWithBookmarks = mockNews.map((article) => ({
-        ...article,
-        isBookmarked: bookmarkedArticles.includes(article.id),
-      }))
-
-      setArticles(articlesWithBookmarks)
-      setFilteredArticles(articlesWithBookmarks)
-      setLoading(false)
-    }
-
-    fetchNews()
-  }, [bookmarkedArticles])
-
-  // Filter articles
-  useEffect(() => {
-    let filtered = articles
-
-    if (selectedCategory !== "All") {
-      filtered = filtered.filter((article) => article.category === selectedCategory)
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (article) =>
-          article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          article.description.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    }
-
-    setFilteredArticles(filtered)
-  }, [articles, selectedCategory, searchQuery])
-
-  const handleBookmark = async (articleId: string) => {
-    const newBookmarks = bookmarkedArticles.includes(articleId)
-      ? bookmarkedArticles.filter((id) => id !== articleId)
-      : [...bookmarkedArticles, articleId]
-
-    setBookmarkedArticles(newBookmarks)
-    localStorage.setItem("bookmarkedArticles", JSON.stringify(newBookmarks))
-
-    setArticles((prev) =>
-      prev.map((article) => ({
-        ...article,
-        isBookmarked: newBookmarks.includes(article.id),
-      })),
-    )
-  }
+  const {
+    filteredArticles,
+    loading,
+    error,
+    searchQuery,
+    selectedCategory,
+    setSearchQuery,
+    setSelectedCategory,
+    toggleBookmark,
+    refreshNews
+  } = useNews()
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -196,6 +42,22 @@ export default function NewsPage() {
       month: "long",
       day: "numeric",
     })
+  }
+
+  const handleCategoryChange = async (category: string) => {
+    setSelectedCategory(category)
+    // Trigger a new search when category changes
+    if (category !== selectedCategory) {
+      await refreshNews()
+    }
+  }
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+  }
+
+  const handleRefresh = async () => {
+    await refreshNews()
   }
 
   return (
@@ -221,8 +83,27 @@ export default function NewsPage() {
               transition={{ delay: 0.1 }}
               className="text-xl text-[#FFCAD4] leading-relaxed max-w-2xl mx-auto"
             >
-              Stay informed with the latest women's health news, research, and insights personalized for your interests.
+              Stay informed with the latest women's health news, research, and insights powered by real-time data.
             </motion.p>
+            
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg flex items-center gap-2 max-w-md mx-auto"
+              >
+                <AlertCircle className="w-4 h-4 text-red-600" />
+                <span className="text-red-800 text-sm">{error}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleRefresh}
+                  className="ml-auto text-red-600 hover:text-red-800"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </motion.section>
@@ -236,7 +117,7 @@ export default function NewsPage() {
               <Input
                 placeholder="Search health news..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="pl-10 bg-white/80 backdrop-blur-sm border-[#FFCAD4]/30 rounded-full"
               />
             </div>
@@ -252,7 +133,7 @@ export default function NewsPage() {
                         ? "bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] text-white"
                         : "hover:bg-[#FFCAD4]/20 border-[#FF407D]/30"
                     }`}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => handleCategoryChange(category)}
                   >
                     {category}
                   </Badge>
@@ -308,7 +189,7 @@ export default function NewsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleBookmark(article.id)}
+                          onClick={() => toggleBookmark(article.id)}
                           className="bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
                         >
                           {article.isBookmarked ? (
@@ -333,7 +214,7 @@ export default function NewsPage() {
                       </p>
 
                       <div className="flex justify-between items-center text-xs text-[#40679E] mt-auto mb-3">
-                        <span className="font-medium">{article.source}</span>
+                        <span className="font-medium">{article.newsSource}</span>
                         <span>{formatDate(article.publishedAt)}</span>
                       </div>
 
@@ -341,6 +222,7 @@ export default function NewsPage() {
                         <Button
                           variant="ghost"
                           className="w-full text-[#FF407D] hover:text-white hover:bg-gradient-to-r hover:from-[#FF407D] hover:to-[#FFCAD4] font-semibold transition-all duration-300"
+                          onClick={() => window.open(article.url, '_blank')}
                         >
                           Read More →
                         </Button>
