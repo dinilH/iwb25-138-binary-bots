@@ -71,21 +71,49 @@ export default function ChatInterface() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const currentInput = inputText
     setInputText("")
     setIsTyping(true)
 
-    setTimeout(() => {
-      const botResponse: Message = {
+    try {
+      const response = await fetch('http://localhost:8080/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          message: currentInput,
+          userId: 'user_' + Date.now() // Optional user ID
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const botResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: data.message,
+          sender: "bot",
+          timestamp: new Date(),
+          sentiment: "positive",
+        }
+        setMessages((prev) => [...prev, botResponse])
+      } else {
+        throw new Error('Failed to get response from chatbot')
+      }
+    } catch (error) {
+      console.error('Chatbot API error:', error)
+      // Fallback to local response generation
+      const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateBotResponse(inputText),
+        text: generateBotResponse(currentInput),
         sender: "bot",
         timestamp: new Date(),
         sentiment: "positive",
       }
-
-      setMessages((prev) => [...prev, botResponse])
+      setMessages((prev) => [...prev, fallbackResponse])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   const handleQuickTopic = (topic: string) => {
