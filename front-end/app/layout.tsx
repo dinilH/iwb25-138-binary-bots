@@ -10,6 +10,7 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import ChatbotIcon from "@/components/chatbot-icon"
 import LoadingScreen from "@/components/loading-screen"
+import {AsgardeoProvider} from '@asgardeo/nextjs/server';
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -33,23 +34,24 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        {/* <link rel="manifest" href="/manifest.json" /> */}
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <WellnessProvider>
-              <LoadingScreen />
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-1 pt-16">{children}</main>
-                <Footer />
-                <ChatbotIcon />
-              </div>
-              <Toaster />
-            </WellnessProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <AsgardeoProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+            <AuthProvider>
+              <WellnessProvider>
+                <LoadingScreen />
+                <div className="min-h-screen flex flex-col">
+                  <Navbar />
+                  <main className="flex-1 pt-16">{children}</main>
+                  <Footer />
+                  <ChatbotIcon />
+                </div>
+                <Toaster />
+              </WellnessProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </AsgardeoProvider>
       </body>
     </html>
   )
