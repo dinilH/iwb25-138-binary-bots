@@ -1,6 +1,11 @@
-import {asgardeoMiddleware} from '@asgardeo/nextjs/server';
+// Middleware for Next.js
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default asgardeoMiddleware();
+export function middleware(request: NextRequest) {
+  // Add any custom middleware logic here
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

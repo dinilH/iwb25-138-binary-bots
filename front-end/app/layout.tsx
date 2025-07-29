@@ -11,7 +11,6 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import ChatbotIcon from "@/components/chatbot-icon"
 import LoadingScreen from "@/components/loading-screen"
-import {AsgardeoProvider} from '@asgardeo/nextjs/server';
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -37,24 +36,22 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className={inter.className}>
-        <AsgardeoProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <AuthProvider>
-              <WellnessProvider>
-                <NewsProvider>
-                  <LoadingScreen />
-                  <div className="min-h-screen flex flex-col">
-                    <Navbar />
-                    <main className="flex-1 pt-16">{children}</main>
-                    <Footer />
-                    <ChatbotIcon />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <WellnessProvider>
+              <NewsProvider>
+                <LoadingScreen />
+                <div className="min-h-screen flex flex-col">
+                  <Navbar />
+                  <main className="flex-1 pt-16">{children}</main>
+                  <Footer />
+                  <ChatbotIcon />
                   </div>
                   <Toaster />
                 </NewsProvider>
               </WellnessProvider>
             </AuthProvider>
           </ThemeProvider>
-        </AsgardeoProvider>
       </body>
     </html>
   )
