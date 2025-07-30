@@ -33,7 +33,7 @@ export default function LoadingScreen() {
               className="mb-8"
             >
               <div className="relative w-32 h-32 mx-auto">
-                {/* Girl Avatar */}
+                
                 {/* <motion.div
                   animate={{
                     y: [0, -10, 0],
