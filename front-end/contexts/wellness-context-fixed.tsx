@@ -48,11 +48,6 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true)
       const response = await fetch(`${API_BASE_URL}/users/${CURRENT_USER_ID}/entries`)
       console.log('API response status:', response.status)
-      
-      if (!response.ok) {
-        throw new Error(`Wellness API returned ${response.status}`)
-      }
-      
       const data = await response.json()
       console.log('API response data:', data)
       
@@ -61,8 +56,17 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
         setWellnessEntries(data.data || [])
       }
     } catch (error) {
-      console.error('Failed to load wellness entries - Ballerina Wellness Service required:', error)
-      setWellnessEntries([]) // Clear entries - no JavaScript fallback
+      console.error('Failed to load wellness entries:', error)
+      // Fallback to localStorage for offline functionality
+      const stored = localStorage.getItem("wellness-entries")
+      if (stored) {
+        console.log('Loading from localStorage fallback')
+        const localEntries = JSON.parse(stored).map((entry: any) => ({
+          ...entry,
+          userId: CURRENT_USER_ID
+        }))
+        setWellnessEntries(localEntries)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -94,15 +98,25 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
           console.log('Updating wellness entries, previous:', prev.length)
           const filtered = prev.filter((e) => e.date !== entry.date)
           const updated = [fullEntry, ...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          
+          // Also update localStorage as backup
+          localStorage.setItem("wellness-entries", JSON.stringify(updated))
           console.log('Updated wellness entries, new:', updated.length)
           return updated
         })
       } else {
-        throw new Error(data.message || 'Ballerina Wellness Service failed to add entry')
+        throw new Error(data.message || 'Failed to add wellness entry')
       }
     } catch (error) {
-      console.error('Failed to add wellness entry - Ballerina service required:', error)
-      throw error // Propagate error - no JavaScript fallback
+      console.error('Failed to add wellness entry:', error)
+      // Fallback to localStorage
+      const fullEntry: WellnessEntry = { ...entry, userId: CURRENT_USER_ID }
+      setWellnessEntries((prev) => {
+        const filtered = prev.filter((e) => e.date !== entry.date)
+        const updated = [fullEntry, ...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        localStorage.setItem("wellness-entries", JSON.stringify(updated))
+        return updated
+      })
     } finally {
       setIsLoading(false)
     }
@@ -150,14 +164,24 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
           const updated = prev.map((entry) => 
             entry.date === date ? fullEntry : entry
           )
+          
+          // Also update localStorage as backup
+          localStorage.setItem("wellness-entries", JSON.stringify(updated))
           return updated
         })
       } else {
-        throw new Error(data.message || 'Ballerina Wellness Service failed to update entry')
+        throw new Error(data.message || 'Failed to update wellness entry')
       }
     } catch (error) {
-      console.error('Failed to update wellness entry - Ballerina service required:', error)
-      throw error // Propagate error - no JavaScript fallback
+      console.error('Failed to update wellness entry:', error)
+      // Fallback to localStorage
+      setWellnessEntries((prev) => {
+        const updated = prev.map((entry) => 
+          entry.date === date ? { ...entry, ...updatedEntry } : entry
+        )
+        localStorage.setItem("wellness-entries", JSON.stringify(updated))
+        return updated
+      })
     } finally {
       setIsLoading(false)
     }

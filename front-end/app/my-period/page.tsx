@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { usePeriod } from "@/contexts/period-context"
 import {
   CalendarIcon,
   TrendingUp,
@@ -52,7 +53,17 @@ const flowColors = {
 }
 
 export default function MyPeriodPage() {
-  const [periods, setPeriods] = useState<PeriodEntry[]>([])
+  const { 
+    periods, 
+    predictions, 
+    calendarData, 
+    loading, 
+    error, 
+    addPeriod, 
+    updatePeriod, 
+    deletePeriod 
+  } = usePeriod()
+  
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isTrendsModalOpen, setIsTrendsModalOpen] = useState(false)
   const [isPredictionsModalOpen, setIsPredictionsModalOpen] = useState(false)
@@ -67,20 +78,6 @@ export default function MyPeriodPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([])
   const [notes, setNotes] = useState("")
 
-  // Load periods from localStorage
-  useEffect(() => {
-    const savedPeriods = localStorage.getItem("periods")
-    if (savedPeriods) {
-      setPeriods(JSON.parse(savedPeriods))
-    }
-  }, [])
-
-  // Save periods to localStorage
-  const savePeriods = (newPeriods: PeriodEntry[]) => {
-    setPeriods(newPeriods)
-    localStorage.setItem("periods", JSON.stringify(newPeriods))
-  }
-
   const handleSymptomToggle = (symptom: string) => {
     setSelectedSymptoms((prev) => (prev.includes(symptom) ? prev.filter((s) => s !== symptom) : [...prev, symptom]))
   }
@@ -94,26 +91,29 @@ export default function MyPeriodPage() {
     setEditingPeriod(null)
   }
 
-  const handleAddPeriod = () => {
+  const handleAddPeriod = async () => {
     if (!startDate || !endDate) return
 
-    const periodData: PeriodEntry = {
-      id: editingPeriod?.id || Date.now().toString(),
-      startDate,
-      endDate,
-      flow,
-      symptoms: selectedSymptoms,
-      notes,
-    }
+    try {
+      const periodData = {
+        startDate,
+        endDate,
+        flow,
+        symptoms: selectedSymptoms,
+        notes,
+      }
 
-    if (editingPeriod) {
-      savePeriods(periods.map((p) => (p.id === editingPeriod.id ? periodData : p)))
-    } else {
-      savePeriods([...periods, periodData])
-    }
+      if (editingPeriod) {
+        await updatePeriod(editingPeriod.id, periodData)
+      } else {
+        await addPeriod(periodData)
+      }
 
-    resetForm()
-    setIsAddModalOpen(false)
+      resetForm()
+      setIsAddModalOpen(false)
+    } catch (error) {
+      console.error('Failed to save period:', error)
+    }
   }
 
   const handleEditPeriod = (period: PeriodEntry) => {
@@ -126,8 +126,12 @@ export default function MyPeriodPage() {
     setIsAddModalOpen(true)
   }
 
-  const handleDeletePeriod = (id: string) => {
-    savePeriods(periods.filter((p) => p.id !== id))
+  const handleDeletePeriod = async (id: string) => {
+    try {
+      await deletePeriod(id)
+    } catch (error) {
+      console.error('Failed to delete period:', error)
+    }
   }
 
   // Generate calendar for current month
@@ -174,35 +178,16 @@ export default function MyPeriodPage() {
     })
   }
 
-  // Calculate predictions
-  const getPredictions = () => {
-    if (periods.length < 2) return []
-
-    const sortedPeriods = [...periods].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    const cycles = []
-
-    for (let i = 1; i < sortedPeriods.length; i++) {
-      const prevStart = new Date(sortedPeriods[i - 1].startDate)
-      const currentStart = new Date(sortedPeriods[i].startDate)
-      const cycleLength = Math.ceil((currentStart.getTime() - prevStart.getTime()) / (1000 * 60 * 60 * 24))
-      cycles.push(cycleLength)
-    }
-
-    const avgCycle = cycles.reduce((sum, cycle) => sum + cycle, 0) / cycles.length
-    const lastPeriod = sortedPeriods[sortedPeriods.length - 1]
-    const lastStart = new Date(lastPeriod.startDate)
-
-    const predictions = []
-    for (let i = 1; i <= 3; i++) {
-      const nextStart = new Date(lastStart.getTime() + avgCycle * i * 24 * 60 * 60 * 1000)
-      predictions.push({
-        cycle: i,
-        date: nextStart.toISOString().split("T")[0],
-        formattedDate: nextStart.toLocaleDateString("en-US", { month: "long", day: "numeric" }),
-      })
-    }
-
-    return predictions
+  // Calculate predictions using context data
+  const getFormattedPredictions = () => {
+    return predictions.slice(0, 3).map((pred, index) => ({
+      cycle: index + 1,
+      date: pred.periodStartDate,
+      formattedDate: new Date(pred.periodStartDate).toLocaleDateString("en-US", { month: "long", day: "numeric" }),
+      ovulationDate: pred.ovulationDate,
+      fertileWindowStart: pred.fertileWindowStart,
+      fertileWindowEnd: pred.fertileWindowEnd
+    }))
   }
 
   // Chart data
@@ -229,12 +214,26 @@ export default function MyPeriodPage() {
   }
 
   const calendarDays = generateCalendar()
-  const predictions = getPredictions()
+  const formattedPredictions = getFormattedPredictions()
   const chartData = getChartData()
   const recentPeriods = periods.slice(0, 3)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFCAD4]/20 to-white pt-16">
+      {loading && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-[#FF407D] text-lg">Processing...</div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        </div>
+      )}
+      
       {/* Compact Hero Section */}
       <motion.section
         initial={{ opacity: 0, y: -20 }}
@@ -475,8 +474,8 @@ export default function MyPeriodPage() {
                     <DialogTitle className="text-[#1B3C73] text-center">Period Predictions</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    {predictions.length > 0 ? (
-                      predictions.map((prediction, index) => (
+                    {formattedPredictions.length > 0 ? (
+                      formattedPredictions.map((prediction, index) => (
                         <motion.div
                           key={prediction.cycle}
                           initial={{ opacity: 0, y: 20 }}

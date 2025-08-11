@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test SheCare APIs</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { margin-top: 10px; padding: 10px; background-color: #f5f5f5; border-radius: 3px; max-height: 300px; overflow-y: auto; }
+        button { padding: 8px 16px; margin: 5px; background-color: #FF407D; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #e63946; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>SheCare Backend API Tests</h1>
+    
+    <div class="test-section">
+        <h3>🏥 Wellness API (Port 8082)</h3>
+        <button onclick="testWellnessHealth()">Test Health Endpoint</button>
+        <button onclick="testAddWellnessEntry()">Add Test Entry</button>
+        <button onclick="testGetWellnessEntries()">Get Entries</button>
+        <div id="wellness-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📰 News API (Port 8060)</h3>
+        <button onclick="testNewsHealth()">Test Health Endpoint</button>
+        <button onclick="testGetNews()">Get News Articles</button>
+        <button onclick="testBookmark()">Test Bookmark</button>
+        <div id="news-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🩸 Period API (Port 8081)</h3>
+        <button onclick="testPeriodHealth()">Test Health Endpoint</button>
+        <button onclick="testPeriodPrediction()">Test Predictions</button>
+        <button onclick="testCalendarData()">Get Calendar Data</button>
+        <div id="period-result" class="result"></div>
+    </div>
+
+    <script>
+        // Helper function to display results
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<pre class="${isError ? 'error' : 'success'}">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // Wellness API Tests
+        async function testWellnessHealth() {
+            try {
+                const response = await fetch('http://localhost:8082/api/wellness/health');
+                const data = await response.json();
+                displayResult('wellness-result', data);
+            } catch (error) {
+                displayResult('wellness-result', { error: error.message }, true);
+            }
+        }
+
+        async function testAddWellnessEntry() {
+            const entry = {
+                userId: 'user123',
+                date: new Date().toISOString().split('T')[0],
+                mood: 4,
+                energy: 3,
+                sleep: 7.5,
+                sleepQuality: 4,
+                stress: 2,
+                water: 8,
+                exercise: 'Walking',
+                symptoms: ['Headache'],
+                notes: 'Test entry from API test page'
+            };
+
+            try {
+                const response = await fetch('http://localhost:8082/api/wellness/entries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entry),
+                });
+                const data = await response.json();
+                displayResult('wellness-result', data);
+            } catch (error) {
+                displayResult('wellness-result', { error: error.message }, true);
+            }
+        }
+
+        async function testGetWellnessEntries() {
+            try {
+                const response = await fetch('http://localhost:8082/api/wellness/users/user123/entries');
+                const data = await response.json();
+                displayResult('wellness-result', data);
+            } catch (error) {
+                displayResult('wellness-result', { error: error.message }, true);
+            }
+        }
+
+        // News API Tests
+        async function testNewsHealth() {
+            try {
+                const response = await fetch('http://localhost:8060/api/news/health');
+                const data = await response.json();
+                displayResult('news-result', data);
+            } catch (error) {
+                displayResult('news-result', { error: error.message }, true);
+            }
+        }
+
+        async function testGetNews() {
+            try {
+                const response = await fetch('http://localhost:8060/api/news/articles?category=Women\'s Health');
+                const data = await response.json();
+                displayResult('news-result', data);
+            } catch (error) {
+                displayResult('news-result', { error: error.message }, true);
+            }
+        }
+
+        async function testBookmark() {
+            try {
+                const response = await fetch('http://localhost:8060/api/news/bookmarks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ articleId: 'news_1' }),
+                });
+                const data = await response.json();
+                displayResult('news-result', data);
+            } catch (error) {
+                displayResult('news-result', { error: error.message }, true);
+            }
+        }
+
+        // Period API Tests
+        async function testPeriodHealth() {
+            try {
+                const response = await fetch('http://localhost:8081/api/period/health');
+                const data = await response.json();
+                displayResult('period-result', data);
+            } catch (error) {
+                displayResult('period-result', { error: error.message }, true);
+            }
+        }
+
+        async function testPeriodPrediction() {
+            const request = {
+                lastPeriodStartDate: '2025-07-15',
+                periodLength: 5,
+                averageCycleLength: 28
+            };
+
+            try {
+                const response = await fetch('http://localhost:8081/api/period/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(request),
+                });
+                const data = await response.json();
+                displayResult('period-result', data);
+            } catch (error) {
+                displayResult('period-result', { error: error.message }, true);
+            }
+        }
+
+        async function testCalendarData() {
+            try {
+                const response = await fetch('http://localhost:8081/api/period/calendar/2025/8');
+                const data = await response.json();
+                displayResult('period-result', data);
+            } catch (error) {
+                displayResult('period-result', { error: error.message }, true);
+            }
+        }
+
+        // Auto-test all endpoints on page load
+        window.addEventListener('load', () => {
+            console.log('Testing all APIs...');
+            testWellnessHealth();
+            testNewsHealth();
+            testPeriodHealth();
+        });
+    </script>
+</body>
+</html>

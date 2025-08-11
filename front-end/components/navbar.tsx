@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Heart } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { NavbarStatusIndicator } from "@/components/navbar-status-indicator"
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -53,6 +54,7 @@ export default function Navbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            <NavbarStatusIndicator />
             <Link href="/login">
               <Button variant="ghost" className="text-[#1B3C73] hover:text-[#FF407D]">
                 Login
