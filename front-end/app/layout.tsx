@@ -6,6 +6,9 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import { WellnessProvider } from "@/contexts/wellness-context"
+import { NewsProvider } from "@/contexts/news-context"
+import { PeriodProvider } from "@/contexts/period-context"
+import { ServiceStatusProvider } from "@/contexts/service-status-context"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import ChatbotIcon from "@/components/chatbot-icon"
@@ -36,21 +39,27 @@ export default function RootLayout({
         {/* <link rel="manifest" href="/manifest.json" /> */}
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <WellnessProvider>
-              <LoadingScreen />
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-1 pt-16">{children}</main>
-                <Footer />
-                <ChatbotIcon />
-              </div>
-              <Toaster />
+        <ThemeProvider>
+          <ServiceStatusProvider>
+            <AuthProvider>
+              <WellnessProvider>
+                <NewsProvider>
+                  <PeriodProvider>
+                    <LoadingScreen />
+                    <div className="min-h-screen flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 pt-16">{children}</main>
+                      <Footer />
+                      <ChatbotIcon />
+                  </div>
+                  <Toaster />
+                </PeriodProvider>
+              </NewsProvider>
             </WellnessProvider>
           </AuthProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+        </ServiceStatusProvider>
+      </ThemeProvider>
+    </body>
+  </html>
   )
 }

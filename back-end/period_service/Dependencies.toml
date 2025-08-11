@@ -275,6 +275,9 @@ version = "2.7.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
+]
 
 [[package]]
 org = "ballerina"
@@ -297,13 +300,14 @@ dependencies = [
 
 [[package]]
 org = "shecare"
-name = "wellness_api"
+name = "period_service"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
-	{org = "ballerina", name = "log"}
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "time"}
 ]
 modules = [
-	{org = "shecare", packageName = "wellness_api", moduleName = "wellness_api"}
+	{org = "shecare", packageName = "period_service", moduleName = "period_service"}
 ]
 
