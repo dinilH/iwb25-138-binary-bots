@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { usePeriod } from "@/contexts/period-context"
+import { useServiceStatus } from "@/contexts/service-status-context"
 import {
   CalendarIcon,
   TrendingUp,
@@ -21,6 +22,9 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  AlertCircle,
+  Wifi,
+  WifiOff,
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -63,6 +67,8 @@ export default function MyPeriodPage() {
     updatePeriod, 
     deletePeriod 
   } = usePeriod()
+
+  const { services, checkService } = useServiceStatus()
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isTrendsModalOpen, setIsTrendsModalOpen] = useState(false)
@@ -218,6 +224,11 @@ export default function MyPeriodPage() {
   const chartData = getChartData()
   const recentPeriods = periods.slice(0, 3)
 
+  // Get period service status
+  const periodService = services.find(s => s.name === 'Period API')
+  const isPeriodServiceOnline = periodService?.status === 'online'
+  const isPeriodServiceChecking = periodService?.status === 'checking'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFCAD4]/20 to-white pt-16">
       {loading && (
@@ -262,6 +273,69 @@ export default function MyPeriodPage() {
       </motion.section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Service Status Alert */}
+        {!isPeriodServiceOnline && !isPeriodServiceChecking && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-6 w-6 text-red-400" />
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-lg font-medium text-red-800">
+                    Period Tracking Service Unavailable
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>
+                      The period tracking service is currently offline. You cannot add, edit, or generate predictions 
+                      for period entries until the service is restored. Please check back later or contact support if this issue persists.
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center gap-4">
+                    <button
+                      onClick={() => checkService('Period API')}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:border-red-300 focus:shadow-outline-red transition ease-in-out duration-150"
+                    >
+                      <WifiOff className="h-4 w-4 mr-1" />
+                      Retry Connection
+                    </button>
+                    <div className="flex items-center text-sm text-red-600">
+                      <WifiOff className="h-4 w-4 mr-1" />
+                      Service Status: Offline
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Service Checking Status */}
+        {isPeriodServiceChecking && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Wifi className="h-6 w-6 text-yellow-400 animate-pulse" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    Checking period tracking service connection...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Calendar */}
           <div className="lg:col-span-2">
@@ -292,13 +366,27 @@ export default function MyPeriodPage() {
                   </div>
                   <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                     <DialogTrigger asChild>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div whileHover={isPeriodServiceOnline ? { scale: 1.05 } : {}} whileTap={isPeriodServiceOnline ? { scale: 0.95 } : {}}>
                         <Button
-                          className="bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white"
+                          disabled={!isPeriodServiceOnline}
+                          className={`transition-all duration-300 ${
+                            isPeriodServiceOnline
+                              ? "bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          }`}
                           onClick={resetForm}
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Period
+                          {!isPeriodServiceOnline ? (
+                            <>
+                              <WifiOff className="w-4 h-4 mr-2" />
+                              Period Service Offline
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Period
+                            </>
+                          )}
                         </Button>
                       </motion.div>
                     </DialogTrigger>
@@ -307,6 +395,22 @@ export default function MyPeriodPage() {
                         <DialogTitle className="text-[#1B3C73] text-center">
                           {editingPeriod ? "Edit Period Entry" : "Add Period Entry"}
                         </DialogTitle>
+                        
+                        {/* Service offline warning inside dialog */}
+                        {!isPeriodServiceOnline && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3"
+                          >
+                            <div className="flex items-center">
+                              <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                              <p className="text-sm text-red-700">
+                                ⚠️ Period service is offline. You cannot save changes until the service is restored.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
                       </DialogHeader>
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -378,13 +482,20 @@ export default function MyPeriodPage() {
                           />
                         </div>
 
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <motion.div whileHover={isPeriodServiceOnline ? { scale: 1.02 } : {}} whileTap={isPeriodServiceOnline ? { scale: 0.98 } : {}}>
                           <Button
                             onClick={handleAddPeriod}
-                            className="w-full bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white"
-                            disabled={!startDate || !endDate}
+                            disabled={!startDate || !endDate || !isPeriodServiceOnline}
+                            className={`w-full transition-all duration-300 ${
+                              isPeriodServiceOnline
+                                ? "bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white disabled:opacity-50"
+                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            }`}
                           >
-                            {editingPeriod ? "Update Period Entry" : "Add Period Entry"}
+                            {!isPeriodServiceOnline
+                              ? "Service Offline - Cannot Save"
+                              : editingPeriod ? "Update Period Entry" : "Add Period Entry"
+                            }
                           </Button>
                         </motion.div>
                       </div>
@@ -464,7 +575,10 @@ export default function MyPeriodPage() {
                       <CalendarIcon className="w-8 h-8 mx-auto mb-2" />
                       <h3 className="text-lg font-bold mb-1">Next Period</h3>
                       <p className="text-sm">
-                        {predictions.length > 0 ? predictions[0].formattedDate : "Track more cycles"}
+                        {predictions.length > 0 
+                          ? new Date(predictions[0].periodStartDate).toLocaleDateString("en-US", { month: "long", day: "numeric" })
+                          : "Track more cycles"
+                        }
                       </p>
                     </CardContent>
                   </Card>
@@ -642,7 +756,12 @@ export default function MyPeriodPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleEditPeriod(period)}
-                                      className="h-6 w-6 p-0 text-[#40679E] hover:text-[#FF407D]"
+                                      disabled={!isPeriodServiceOnline}
+                                      className={`h-6 w-6 p-0 ${
+                                        isPeriodServiceOnline 
+                                          ? "text-[#40679E] hover:text-[#FF407D]" 
+                                          : "text-gray-400 cursor-not-allowed"
+                                      }`}
                                     >
                                       <Edit className="w-3 h-3" />
                                     </Button>
@@ -650,7 +769,12 @@ export default function MyPeriodPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleDeletePeriod(period.id)}
-                                      className="h-6 w-6 p-0 text-[#40679E] hover:text-red-500"
+                                      disabled={!isPeriodServiceOnline}
+                                      className={`h-6 w-6 p-0 ${
+                                        isPeriodServiceOnline 
+                                          ? "text-[#40679E] hover:text-red-500" 
+                                          : "text-gray-400 cursor-not-allowed"
+                                      }`}
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </Button>
@@ -705,7 +829,12 @@ export default function MyPeriodPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleEditPeriod(period)}
-                                  className="h-6 w-6 p-0 text-[#40679E] hover:text-[#FF407D]"
+                                  disabled={!isPeriodServiceOnline}
+                                  className={`h-6 w-6 p-0 ${
+                                    isPeriodServiceOnline 
+                                      ? "text-[#40679E] hover:text-[#FF407D]" 
+                                      : "text-gray-400 cursor-not-allowed"
+                                  }`}
                                 >
                                   <Edit className="w-3 h-3" />
                                 </Button>
@@ -713,7 +842,12 @@ export default function MyPeriodPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleDeletePeriod(period.id)}
-                                  className="h-6 w-6 p-0 text-[#40679E] hover:text-red-500"
+                                  disabled={!isPeriodServiceOnline}
+                                  className={`h-6 w-6 p-0 ${
+                                    isPeriodServiceOnline 
+                                      ? "text-[#40679E] hover:text-red-500" 
+                                      : "text-gray-400 cursor-not-allowed"
+                                  }`}
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>

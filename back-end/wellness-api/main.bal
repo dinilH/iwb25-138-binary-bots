@@ -1,22 +1,12 @@
-// SheCare Wellness Service - Pure Ballerina Implementation
-// 
-// This service provides comprehensive wellness tracking functionality
-// for monitoring mood, energy, sleep, hydration, and other health metrics.
-// 
-// Features:
-// - Daily wellness entry logging
-// - User-specific wellness history
-// - Health metrics tracking
-// - RESTful API endpoints
-// 
+// SheCare Wellness Service -Ballerina Implementation
+
 // Port: 8082
-// Author: SheCare Team
-// Competition: Ballerina 2025
+
 
 import ballerina/http;
 import ballerina/log;
 
-// ========== TYPE DEFINITIONS ==========
+//TYPE DEFINITIONS
 
 // Wellness tracking entry for daily health metrics
 type WellnessEntry record {
@@ -29,11 +19,11 @@ type WellnessEntry record {
     string notes?;              // Optional wellness notes
 };
 
-// ========== DATA STORAGE ==========
+// DATA STORAGE
 // In-memory storage for demonstration (production would use a database)
 map<WellnessEntry[]> wellnessStore = {};
 
-// ========== HTTP SERVICE CONFIGURATION ==========
+// HTTP SERVICE CONFIGURATION
 
 @http:ServiceConfig {
     cors: {

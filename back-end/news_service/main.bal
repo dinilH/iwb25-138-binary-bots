@@ -1,56 +1,12 @@
-// SheCare News Service - Pure Ballerina Implementation
-// 
-// This service aggregates women's health news from external APIs
-// and provides categorized, searchable health news content.
-// 
-// Features:
-// - Women's health focused news aggregation
-// - Article categorization (Mental Health, Nutrition, Fitness, Pregnancy)
-// - Search and filtering capabilities
-// - Bookmark management system
-// - Secure API key handling
-// 
-// Port: 8060
-// Author: SheCare Team
-// Competition: Ballerina 2025
-
 import ballerina/http;
 import ballerina/log;
 import ballerina/url;
-import ballerina/os;
 
-// ========== CONFIGURATION ==========
-// Secure API key management from environment variables
-// Prefer configurable variable (can be provided via env NEWS_API_KEY or -CnewsApiKey=...)
-configurable string? newsApiKey = (); // set via -CnewsApiKey=<key>
-configurable boolean useMockOnAuthFail = true; // fallback for demos if auth fails
+final string apiKey = "";
 
-// Authentication strategies
 enum AuthMode { HEADER, QUERY }
 final AuthMode PRIMARY_AUTH_MODE = HEADER;
 
-// API key resolution - no hardcoded fallback for security
-function getEffectiveApiKey() returns string {
-    if (newsApiKey is string) {
-        string cfg = <string>newsApiKey;
-        if (cfg.trim().length() > 0) {
-            log:printInfo("Using API key from configurable variable (-CnewsApiKey)");
-            return cfg.trim();
-        }
-    }
-    string? envKey = os:getEnv("NEWS_API_KEY");
-    if (envKey is string) {
-        string ek = envKey.trim();
-        if (ek.length() > 0) {
-            log:printInfo("Using API key from environment variable NEWS_API_KEY");
-            return ek;
-        }
-    }
-    log:printError("CRITICAL: No API key found. Set NEWS_API_KEY environment variable or use -CnewsApiKey configuration.");
-    return ""; // Return empty string - will trigger fallback behavior
-}
-
-// Sample fallback articles (used when API auth keeps failing)
 final NewsArticle[] MOCK_ARTICLES = [
     {
         id: "mock_1",
@@ -86,26 +42,6 @@ final NewsArticle[] MOCK_ARTICLES = [
         isBookmarked: false
     }
 ];
-
-function resolveApiKey() returns string|error {
-    if (newsApiKey is string) {
-        string cfg = <string>newsApiKey;
-        if (cfg.trim().length() > 0) {
-            log:printInfo("Using API key from configurable variable (-CnewsApiKey)");
-            return cfg.trim();
-        }
-    }
-    string? envKey = os:getEnv("NEWS_API_KEY");
-    if (envKey is string) {
-        string ek = envKey.trim();
-        if (ek.length() > 0) {
-            log:printInfo("Using API key from environment variable NEWS_API_KEY");
-            return ek;
-        }
-    }
-    log:printError("CRITICAL: No API key found. Set NEWS_API_KEY environment variable or use -CnewsApiKey configuration.");
-    return error("No API key configured. News service cannot function without valid NewsAPI key.");
-}
 
 function attemptNewsFetch(http:Client httpClient, string basePath, string key) returns http:Response|error {
     http:Response|error primary = executeNewsRequest(httpClient, basePath, key, PRIMARY_AUTH_MODE);
@@ -161,33 +97,27 @@ function fetchTopHeadlines(http:Client httpClient, string key) returns http:Resp
     return httpClient->get(path, headers = headers);
 }
 
-// ========== TYPE DEFINITIONS ==========
-
-// News article structure for women's health content
 type NewsArticle record {
-    string id;              // Unique article identifier
-    string title;           // Article headline
-    string description;     // Article summary/description
-    string url;             // Link to full article
-    string imageUrl;        // Article image URL
-    string publishedAt;     // Publication timestamp
-    string newsSource;      // News source name
-    string category;        // Health category classification
-    boolean isBookmarked;   // User bookmark status
+    string id;
+    string title;
+    string description;
+    string url;
+    string imageUrl;
+    string publishedAt;
+    string newsSource;
+    string category;
+    boolean isBookmarked;
 };
 
-// API response structure for news endpoints
 type NewsResponse record {
-    boolean success;        // Request success status
-    string? message?;       // Optional status message
-    NewsArticle[] articles; // Array of news articles
-    int? totalResults?;     // Total available articles count
+    boolean success;
+    string? message?;
+    NewsArticle[] articles;
+    int? totalResults?;
 };
 
-// In-memory bookmark storage (production would use database)
 map<boolean> bookmarkedArticles = {};
 
-// CORS configuration for frontend integration
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["http://localhost:3000"],
@@ -198,9 +128,6 @@ map<boolean> bookmarkedArticles = {};
 }
 service /api/news on new http:Listener(8060) {
 
-    // ========== HEALTH CHECK ENDPOINT ==========
-    // Health check endpoint to verify service availability
-    // @return JSON response with service status
     resource function get health() returns json {
         log:printInfo("News service health check - Pure Ballerina implementation");
         return {
@@ -210,14 +137,6 @@ service /api/news on new http:Listener(8060) {
         };
     }
 
-    // ========== NEWS ARTICLE ENDPOINTS ==========
-    
-    // Get women's health news articles with filtering options
-    // @param category - Optional category filter (Mental Health, Nutrition, etc.)
-    // @param search - Optional search term
-    // @param page - Page number for pagination (default: 1)
-    // @param pageSize - Number of articles per page (default: 20)
-    // @return NewsResponse with filtered articles
     resource function get articles(string? category, string? search, int page = 1, int pageSize = 20) returns NewsResponse|error {
         string categoryStr = category is string ? category : "All";
         string searchStr = search is string ? search : "None";
@@ -235,8 +154,7 @@ service /api/news on new http:Listener(8060) {
 
         log:printInfo("Final Query (raw): " + finalQuery);
         
-        string effectiveApiKey = getEffectiveApiKey();
-        http:Response|error response = attemptNewsFetch(newsApiClient, basePath, effectiveApiKey);        if (response is error) {
+        http:Response|error response = attemptNewsFetch(newsApiClient, basePath, apiKey);        if (response is error) {
             log:printError("Error calling NewsAPI (transport / client error)", 'error = response);
             return {
                 success: false,
@@ -312,8 +230,6 @@ service /api/news on new http:Listener(8060) {
                         }
                     }
                     
-                    // ========== CONTENT FILTERING AND CATEGORIZATION ==========
-                    
                     // Categorize articles based on content analysis
                     string assignedCategory = categorizeArticle(title, description);
                     
@@ -323,7 +239,6 @@ service /api/news on new http:Listener(8060) {
                         continue;
                     }
 
-                    // Create structured news article object
                     NewsArticle newsArticle = {
                         id: articleId,
                         title: title,
@@ -358,75 +273,16 @@ service /api/news on new http:Listener(8060) {
             if (body.length() > 0) {
                 refinedMessage = refinedMessage + " - " + body;
             }
-            // Provide user hint for common 401 causes
             if (response.statusCode == 401) {
                 refinedMessage = refinedMessage + 
                     " | Hints: Verify API key not expired, no leading/trailing spaces, plan allows 'everything' endpoint, and key not restricted.";
-                if (useMockOnAuthFail) {
-                    log:printError("Returning mock articles due to persistent 401 (auth failure)");
-                    return {
-                        success: true,
-                        message: refinedMessage + " (mock data)",
-                        articles: MOCK_ARTICLES,
-                        totalResults: MOCK_ARTICLES.length()
-                    };
-                }
-                // Try fallback endpoint
-                http:Response|error topHeadlines = fetchTopHeadlines(newsApiClient, effectiveApiKey);
-                if (topHeadlines is http:Response && topHeadlines.statusCode == 200) {
-                    json|error thJson = topHeadlines.getJsonPayload();
-                    if (thJson is json) {
-                        NewsArticle[] thArticles = [];
-                        json thArray = check thJson.articles;
-                        if (thArray is json[]) {
-                            int i = 0;
-                            foreach json a in thArray {
-                                string title = "";
-                                json|error tRes = a.title;
-                                if (tRes is json && tRes is string) { title = tRes; }
-                                string desc = "";
-                                json|error dRes = a.description;
-                                if (dRes is json && dRes is string) { desc = dRes; }
-                                string link = "";
-                                json|error lRes = a.url;
-                                if (lRes is json && lRes is string) { link = lRes; }
-                                string img = "/placeholder.svg";
-                                json|error iRes = a.urlToImage;
-                                if (iRes is json && iRes is string) { img = iRes; }
-                                string pub = "";
-                                json|error pRes = a.publishedAt;
-                                if (pRes is json && pRes is string) { pub = pRes; }
-                                string sourceName = "Unknown";
-                                if (a.'source is json) {
-                                    json|error sn = a.'source.name;
-                                    if (sn is json && sn is string) {
-                                        sourceName = <string>sn;
-                                    }
-                                }
-                                string cat = categorizeArticle(title, desc);
-                                NewsArticle na = {
-                                    id: "th_" + i.toString(),
-                                    title: title,
-                                    description: desc,
-                                    url: link,
-                                    imageUrl: img,
-                                    publishedAt: pub,
-                                    newsSource: sourceName,
-                                    category: cat,
-                                    isBookmarked: false
-                                };
-                                thArticles.push(na);
-                                i += 1;
-                            }
-                        }
-                        return {
-                            success: true,
-                            message: "Used top-headlines fallback (everything endpoint unauthorized)",
-                            articles: thArticles,
-                            totalResults: thArticles.length()
-                        };
-                    }
-                }
+                log:printError("Returning mock articles due to persistent 401 (auth failure)");
+                return {
+                    success: true,
+                    message: refinedMessage + " (mock data)",
+                    articles: MOCK_ARTICLES,
+                    totalResults: MOCK_ARTICLES.length()
+                };
             }
             return {
                 success: false,
@@ -436,11 +292,6 @@ service /api/news on new http:Listener(8060) {
         }
     }
 
-    // ========== BOOKMARK MANAGEMENT ENDPOINTS ==========
-    
-    // Add an article to user bookmarks
-    // @param bookmarkData - JSON containing articleId to bookmark
-    // @return Success/error response
     resource function post bookmarks(@http:Payload json bookmarkData) returns json|error {
         string articleId = check bookmarkData.articleId;
         bookmarkedArticles[articleId] = true;
@@ -452,9 +303,6 @@ service /api/news on new http:Listener(8060) {
         };
     }
 
-    // Remove an article from user bookmarks
-    // @param articleId - ID of article to unbookmark
-    // @return Success/error response
     resource function delete bookmarks/[string articleId]() returns json|error {
         if (bookmarkedArticles.hasKey(articleId)) {
             _ = bookmarkedArticles.remove(articleId);
@@ -467,8 +315,6 @@ service /api/news on new http:Listener(8060) {
         };
     }
 
-    // Get all bookmarked articles
-    // @return List of bookmarked article IDs
     resource function get bookmarks() returns json {
         string[] bookmarkedIds = bookmarkedArticles.keys();
         return {
@@ -477,8 +323,6 @@ service /api/news on new http:Listener(8060) {
         };
     }
 
-    // Get news categories available in the system
-    // @return List of available news categories
     resource function get categories() returns json {
         string[] categories = [
             "All",
@@ -499,44 +343,29 @@ service /api/news on new http:Listener(8060) {
     }
 }
 
-// ========== UTILITY FUNCTIONS FOR NEWS PROCESSING ==========
-
-// Advanced article categorization using keyword analysis and scoring
-// Analyzes title and description content to determine most relevant category
-// @param title - Article title
-// @param description - Article description
-// @return Best matching category based on weighted keyword analysis
 function categorizeArticle(string title, string description) returns string {
     string content = (title + " " + description).toLowerAscii();
     
-    // Initialize category scores for weighted analysis
     map<int> categoryScores = {};
     
-    // Mental Health keywords with weights
     string[] mentalHealthKeywords = ["mental", "depression", "anxiety", "stress", "psychological", "therapy", "counseling", "wellbeing", "emotional", "mood", "psychiatric", "mindfulness", "meditation"];
     categoryScores["Mental Health"] = calculateCategoryScore(content, mentalHealthKeywords);
     
-    // Nutrition keywords
     string[] nutritionKeywords = ["nutrition", "diet", "food", "vitamin", "mineral", "supplement", "eating", "calories", "protein", "carbohydrate", "fat", "nutrient", "healthy eating", "meal"];
     categoryScores["Nutrition"] = calculateCategoryScore(content, nutritionKeywords);
     
-    // Fitness keywords
     string[] fitnessKeywords = ["exercise", "fitness", "workout", "yoga", "pilates", "running", "gym", "training", "physical activity", "cardio", "strength", "muscle"];
     categoryScores["Fitness & Exercise"] = calculateCategoryScore(content, fitnessKeywords);
     
-    // Pregnancy keywords
     string[] pregnancyKeywords = ["pregnancy", "pregnant", "maternal", "prenatal", "postnatal", "labor", "delivery", "birth", "expecting", "trimester", "fetal", "baby"];
     categoryScores["Pregnancy & Maternity"] = calculateCategoryScore(content, pregnancyKeywords);
     
-    // Reproductive Health keywords
     string[] reproductiveKeywords = ["reproductive", "fertility", "pcos", "endometriosis", "ovarian", "uterine", "cervical", "contraception", "ivf", "menstrual", "period", "cycle"];
     categoryScores["Reproductive Health"] = calculateCategoryScore(content, reproductiveKeywords);
     
-    // Women's Rights keywords
     string[] rightsKeywords = ["rights", "equality", "discrimination", "harassment", "workplace", "policy", "legislation", "advocacy", "empowerment", "justice"];
     categoryScores["Women's Rights"] = calculateCategoryScore(content, rightsKeywords);
     
-    // Find category with highest score
     string bestCategory = "General Health";
     int highestScore = 0;
     
@@ -548,34 +377,26 @@ function categorizeArticle(string title, string description) returns string {
         }
     }
     
-    // Return default category if no matches found
     if (highestScore == 0) {
-        return "General Health"; // Default category for unmatched content
+        return "General Health";
     }
     
     return bestCategory;
 }
 
-// Calculate relevance score for a category based on keyword matches
-// Uses weighted scoring system for more accurate categorization
-// @param content - Article content (title + description) in lowercase
-// @param keywords - Array of keywords to search for
-// @return Weighted score indicating category relevance
 function calculateCategoryScore(string content, string[] keywords) returns int {
     int score = 0;
     
     foreach string keyword in keywords {
         if (content.includes(keyword)) {
-            // Apply weight based on keyword length (longer = more specific)
             if (keyword.length() > 8) {
-                score += 3; // High weight for specific terms
+                score += 3;
             } else if (keyword.length() > 5) {
-                score += 2; // Medium weight for moderate terms
+                score += 2;
             } else {
-                score += 1; // Base weight for common terms
+                score += 1;
             }
             
-            // Bonus points for exact phrase matches (surrounded by spaces)
             if (content.includes(" " + keyword + " ")) {
                 score += 1;
             }

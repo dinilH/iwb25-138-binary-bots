@@ -113,7 +113,7 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error('Failed to connect to Ballerina News Service:', err)
-      setError('Cannot connect to Ballerina News Service - Pure Ballerina implementation required')
+      setError('Cannot connect to Ballerina News Service - Ballerina implementation required')
       setArticles([])
       setFilteredArticles([])
     } finally {

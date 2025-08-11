@@ -1,17 +1,4 @@
-// SheCare Period Service - Pure Ballerina Implementation
-// 
-// This service provides comprehensive menstrual cycle tracking and prediction
-// using pure Ballerina time mathematics and calculations.
-// 
-// Features:
-// - Ovulation and fertile window predictions
-// - 6-cycle future forecasting
-// - Calendar generation with phase tracking
-// - Month-specific period data
-// 
-// Port: 8081
-// Author: SheCare Team
-// Competition: Ballerina 2025
+// SheCare Period Service -Ballerina Implementation
 
 import ballerina/http;
 import ballerina/time;

@@ -61,6 +61,8 @@ interface PeriodContextType {
   calendarData: CalendarDay[]
   loading: boolean
   error: string | null
+  isServiceAvailable: boolean
+  serviceError: string | null
   addPeriod: (period: Omit<PeriodEntry, 'id'>) => Promise<void>
   updatePeriod: (id: string, period: Partial<PeriodEntry>) => Promise<void>
   deletePeriod: (id: string) => Promise<void>
@@ -76,6 +78,8 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
   const [calendarData, setCalendarData] = useState<CalendarDay[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isServiceAvailable, setIsServiceAvailable] = useState(true)
+  const [serviceError, setServiceError] = useState<string | null>(null)
 
   // Load periods from localStorage on mount (fallback)
   useEffect(() => {
@@ -187,6 +191,7 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true)
       setError(null)
+      setServiceError(null)
 
       console.log('Generating predictions with request:', request)
 
@@ -204,13 +209,18 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
       if (data.success) {
         setPredictions(data.predictions || [])
         setCalendarData(data.calendarData || [])
+        setIsServiceAvailable(true)
       } else {
         setError(data.message || 'Failed to generate predictions - Ballerina service required')
+        setIsServiceAvailable(false)
+        setServiceError(data.message || 'Service returned error')
         console.error('Ballerina period service returned error:', data.message)
       }
     } catch (err) {
       console.error('Failed to connect to Ballerina period service:', err)
       setError('Cannot connect to Ballerina period service - Pure Ballerina implementation required')
+      setIsServiceAvailable(false)
+      setServiceError(err instanceof Error ? err.message : 'Service unavailable')
       setPredictions([])
       setCalendarData([])
     } finally {
@@ -224,18 +234,24 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true)
       setError(null)
+      setServiceError(null)
 
       const response = await fetch(`${API_BASE_URL}/calendar/${year}/${month}`)
       const data: PeriodResponse = await response.json()
 
       if (data.success) {
         setCalendarData(data.calendarData || [])
+        setIsServiceAvailable(true)
       } else {
         setError(data.message || 'Failed to get calendar data')
+        setIsServiceAvailable(false)
+        setServiceError(data.message || 'Service returned error')
       }
     } catch (err) {
       console.error('Failed to get calendar data:', err)
       setError('Failed to connect to period service')
+      setIsServiceAvailable(false)
+      setServiceError(err instanceof Error ? err.message : 'Service unavailable')
     } finally {
       setLoading(false)
     }
@@ -260,6 +276,8 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
         calendarData,
         loading,
         error,
+        isServiceAvailable,
+        serviceError,
         addPeriod,
         updatePeriod,
         deletePeriod,

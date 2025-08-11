@@ -29,6 +29,8 @@ interface WellnessContextType {
   getWellnessForDate: (date: string) => WellnessEntry | null
   updateWellnessEntry: (date: string, entry: Partial<WellnessEntry>) => Promise<void>
   isLoading: boolean
+  isServiceAvailable: boolean
+  serviceError: string | null
 }
 
 const WellnessContext = createContext<WellnessContextType | undefined>(undefined)
@@ -36,6 +38,8 @@ const WellnessContext = createContext<WellnessContextType | undefined>(undefined
 export function WellnessProvider({ children }: { children: React.ReactNode }) {
   const [wellnessEntries, setWellnessEntries] = useState<WellnessEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isServiceAvailable, setIsServiceAvailable] = useState(true)
+  const [serviceError, setServiceError] = useState<string | null>(null)
 
   // Load entries from API on mount
   useEffect(() => {
@@ -46,6 +50,8 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
     console.log('Loading wellness entries from API...')
     try {
       setIsLoading(true)
+      setServiceError(null)
+      
       const response = await fetch(`${API_BASE_URL}/users/${CURRENT_USER_ID}/entries`)
       console.log('API response status:', response.status)
       
@@ -59,10 +65,13 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
       if (data.success) {
         console.log('Setting wellness entries:', data.data?.length || 0, 'entries')
         setWellnessEntries(data.data || [])
+        setIsServiceAvailable(true)
       }
     } catch (error) {
       console.error('Failed to load wellness entries - Ballerina Wellness Service required:', error)
       setWellnessEntries([]) // Clear entries - no JavaScript fallback
+      setIsServiceAvailable(false)
+      setServiceError(error instanceof Error ? error.message : 'Service unavailable')
     } finally {
       setIsLoading(false)
     }
@@ -72,6 +81,8 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
     console.log('Adding wellness entry:', entry)
     try {
       setIsLoading(true)
+      setServiceError(null)
+      
       const fullEntry: WellnessEntry = {
         ...entry,
         userId: CURRENT_USER_ID
@@ -97,11 +108,14 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
           console.log('Updated wellness entries, new:', updated.length)
           return updated
         })
+        setIsServiceAvailable(true)
       } else {
         throw new Error(data.message || 'Ballerina Wellness Service failed to add entry')
       }
     } catch (error) {
       console.error('Failed to add wellness entry - Ballerina service required:', error)
+      setIsServiceAvailable(false)
+      setServiceError(error instanceof Error ? error.message : 'Service unavailable')
       throw error // Propagate error - no JavaScript fallback
     } finally {
       setIsLoading(false)
@@ -119,6 +133,7 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
   const updateWellnessEntry = async (date: string, updatedEntry: Partial<WellnessEntry>) => {
     try {
       setIsLoading(true)
+      setServiceError(null)
       
       // Find the existing entry
       const existingEntry = wellnessEntries.find(entry => entry.date === date)
@@ -152,18 +167,21 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
           )
           return updated
         })
+        setIsServiceAvailable(true)
       } else {
         throw new Error(data.message || 'Ballerina Wellness Service failed to update entry')
       }
     } catch (error) {
       console.error('Failed to update wellness entry - Ballerina service required:', error)
+      setIsServiceAvailable(false)
+      setServiceError(error instanceof Error ? error.message : 'Service unavailable')
       throw error // Propagate error - no JavaScript fallback
     } finally {
       setIsLoading(false)
     }
   }
 
-  return (
+    return (
     <WellnessContext.Provider
       value={{
         addWellnessEntry,
@@ -171,6 +189,8 @@ export function WellnessProvider({ children }: { children: React.ReactNode }) {
         getWellnessForDate,
         updateWellnessEntry,
         isLoading,
+        isServiceAvailable,
+        serviceError,
       }}
     >
       {children}
