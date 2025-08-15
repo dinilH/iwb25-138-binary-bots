@@ -11,6 +11,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@asgardeo/auth-react": "^5.4.0",
     "@emotion/is-prop-valid": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
