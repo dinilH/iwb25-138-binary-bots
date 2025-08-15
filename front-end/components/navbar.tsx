@@ -55,10 +55,10 @@ export default function Navbar() {
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <SignedOut>
-              <SignInButton />
+              <SignInButton className="bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] text-white font-semibold px-4 py-2 rounded-lg shadow hover:from-[#FFCAD4] hover:to-[#FF407D] transition-colors duration-200" />
             </SignedOut>
             <SignedIn>
-              <SignOutButton />
+              <SignOutButton className="bg-[#1B3C73] text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-[#40679E] transition-colors duration-200" />
             </SignedIn>
           </div>
 
@@ -97,10 +97,10 @@ export default function Navbar() {
               {/* Mobile Auth Buttons */}
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
                 <SignedOut>
-                  <SignInButton />
+                  <SignInButton className="bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] text-white font-semibold px-4 py-2 rounded-lg shadow hover:from-[#FFCAD4] hover:to-[#FF407D] transition-colors duration-200" />
                 </SignedOut>
                 <SignedIn>
-                  <SignOutButton />
+                  <SignOutButton className="bg-[#1B3C73] text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-[#40679E] transition-colors duration-200" />
                 </SignedIn>
               </div>
             </div>
