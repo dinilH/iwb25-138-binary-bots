@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Menu, X, Heart } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { NavbarStatusIndicator } from "@/components/navbar-status-indicator"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { SignInButton, SignedIn, SignOutButton, SignedOut } from "@asgardeo/nextjs";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Wellness", href: "/wellness" },
   { name: "My Period", href: "/my-period" },
   { name: "News", href: "/news" },
-]
+];
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const pathname = usePathname()
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200/20 shadow-sm">
@@ -54,17 +54,12 @@ export default function Navbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <NavbarStatusIndicator />
-            <Link href="/login">
-              <Button variant="ghost" className="text-[#1B3C73] hover:text-[#FF407D]">
-                Login
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button className="bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white">
-                Sign Up
-              </Button>
-            </Link>
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
+            <SignedIn>
+              <SignOutButton />
+            </SignedIn>
           </div>
 
           {/* Mobile menu button */}
@@ -98,22 +93,20 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
+
+              {/* Mobile Auth Buttons */}
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
-                <Link href="/login" onClick={() => setIsOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-[#1B3C73] hover:text-[#FF407D]">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/signup" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-[#FF407D] to-[#FFCAD4] hover:from-[#FFCAD4] hover:to-[#FF407D] text-white">
-                    Sign Up
-                  </Button>
-                </Link>
+                <SignedOut>
+                  <SignInButton />
+                </SignedOut>
+                <SignedIn>
+                  <SignOutButton />
+                </SignedIn>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </nav>
-  )
+  );
 }
