@@ -6,12 +6,13 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import { WellnessProvider } from "@/contexts/wellness-context"
+import { NewsProvider } from "@/contexts/news-context"
+import { PeriodProvider } from "@/contexts/period-context"
 import { ServiceStatusProvider } from "@/contexts/service-status-context"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import ChatbotIcon from "@/components/chatbot-icon"
 import LoadingScreen from "@/components/loading-screen"
-import {AsgardeoProvider} from '@asgardeo/nextjs/server';
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -35,27 +36,30 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* <link rel="manifest" href="/manifest.json" /> */}
       </head>
       <body className={inter.className}>
-        <AsgardeoProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider>
+          <ServiceStatusProvider>
             <AuthProvider>
               <WellnessProvider>
-                <ServiceStatusProvider>
-                  <LoadingScreen />
-                  <div className="min-h-screen flex flex-col">
-                    <Navbar />
-                    <main className="flex-1 pt-16">{children}</main>
-                    <Footer />
-                    <ChatbotIcon />
+                <NewsProvider>
+                  <PeriodProvider>
+                    <LoadingScreen />
+                    <div className="min-h-screen flex flex-col">
+                      <Navbar />
+                      <main className="flex-1 pt-16">{children}</main>
+                      <Footer />
+                      <ChatbotIcon />
                   </div>
                   <Toaster />
-                </ServiceStatusProvider>
-              </WellnessProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </AsgardeoProvider>
-      </body>
-    </html>
+                </PeriodProvider>
+              </NewsProvider>
+            </WellnessProvider>
+          </AuthProvider>
+        </ServiceStatusProvider>
+      </ThemeProvider>
+    </body>
+  </html>
   )
 }
