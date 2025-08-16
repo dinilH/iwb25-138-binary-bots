@@ -56,7 +56,29 @@ export default function ChatbotIcon() {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = (message?: string) => {
+  const getBotResponse = async (userMessage: string): Promise<string> => {
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      return data.message || 'Sorry, I could not generate a response at the moment.';
+    } catch (error) {
+      console.error('Error getting bot response:', error);
+      return 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.';
+    }
+  }
+
+  const handleSendMessage = async (message?: string) => {
     const messageText = message || inputMessage
     if (!messageText.trim()) return
 
@@ -71,38 +93,26 @@ export default function ChatbotIcon() {
     setInputMessage("")
     setIsTyping(true)
 
-    // Simulate AI response with more contextual responses
-    setTimeout(() => {
-      const responses = {
-        "How can I ease cramps?":
-          "Here are some effective ways to ease period cramps: 🌡️ Apply heat (heating pad or warm bath), 🚶‍♀️ Try gentle exercise like walking or yoga, 💊 Consider anti-inflammatory medications, 🧘‍♀️ Practice deep breathing or meditation, and 💧 stay well-hydrated. Magnesium supplements may also help!",
-        "What does my cycle mean?":
-          "Your menstrual cycle is your body's monthly preparation for pregnancy! 📅 A typical cycle is 21-35 days and includes: Menstruation (days 1-7), Follicular phase (days 1-13), Ovulation (around day 14), and Luteal phase (days 15-28). Tracking helps you understand your unique patterns! 📊",
-        "Tips for better sleep during periods":
-          "For better period sleep: 🌡️ Keep your room cool, 🛏️ Use a heating pad for comfort, 🧘‍♀️ Try relaxation techniques before bed, ☕ Avoid caffeine after 2 PM, 🛀 Take a warm bath, and 📱 limit screen time 1 hour before sleep. Your body needs extra rest during this time!",
-        "How to track my wellness?":
-          "Great question! Use our wellness tracker to log: 😊 Daily mood (1-5 scale), ⚡ Energy levels, 😴 Sleep hours and quality, 💧 Water intake, 🏃‍♀️ Exercise/activity, and 🩸 Period symptoms. This helps identify patterns and improve your overall health! 📈",
-        "What are normal period symptoms?":
-          "Normal period symptoms include: 🤕 Mild to moderate cramping, 🎈 Bloating, 😴 Fatigue, 🍫 Food cravings, 😢 Mood changes, and 💔 Breast tenderness. However, severe pain, very heavy bleeding, or symptoms that interfere with daily life should be discussed with a healthcare provider.",
-        "How to manage mood swings?":
-          "To manage period mood swings: 🏃‍♀️ Regular exercise releases endorphins, 😴 Prioritize 7-9 hours of sleep, 🥗 Eat balanced meals with complex carbs, 🧘‍♀️ Practice mindfulness or meditation, 📝 Track your cycle to anticipate changes, and 💬 talk to supportive friends or family. You're not alone in this! 💕",
-        "Best foods for hormonal balance":
-          "Foods that support hormonal balance: 🥬 Leafy greens (iron & folate), 🐟 Fatty fish (omega-3s), 🥜 Nuts & seeds (healthy fats), 🫐 Berries (antioxidants), 🥑 Avocados (healthy fats), 🍠 Sweet potatoes (complex carbs), and 🍫 Dark chocolate (magnesium). Stay hydrated too! 💧",
-        "Exercise during menstruation":
-          "Exercise during your period can actually help! Try: 🚶‍♀️ Light walking, 🧘‍♀️ Gentle yoga, 🏊‍♀️ Swimming (great for cramps!), 🤸‍♀️ Stretching, or 💃 Dancing. Listen to your body - some days you might feel energetic, others you might prefer rest. Both are perfectly normal! 💪",
-      }
-
+    try {
+      const botResponseText = await getBotResponse(messageText);
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text:
-          responses[messageText as keyof typeof responses] ||
-          "Thank you for your question! 💭 For specific medical concerns, please consult with a healthcare professional. I'm here to provide general wellness guidance and help you track your health patterns. Is there anything specific about your wellness journey I can help with? 🌸",
+        text: botResponseText,
         isUser: false,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiResponse])
+    } catch (error) {
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble responding right now. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorResponse])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
