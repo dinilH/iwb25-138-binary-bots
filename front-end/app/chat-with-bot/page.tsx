@@ -24,7 +24,7 @@ export default function ChatWithBotPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect to home page since chat is now handled by the floating icon
+    // Redirect to home page since chat is now handled by the floating icons
     router.push("/")
   }, [router])
 
