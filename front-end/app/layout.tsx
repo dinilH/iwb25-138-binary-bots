@@ -9,6 +9,7 @@ import { WellnessProvider } from "@/contexts/wellness-context"
 import { NewsProvider } from "@/contexts/news-context"
 import { PeriodProvider } from "@/contexts/period-context"
 import { ServiceStatusProvider } from "@/contexts/service-status-context"
+import { AsgardeoProvider } from "@/components/providers/asgardeo-nextjs-provider"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import ChatbotIcon from "@/components/chatbot-icon"
@@ -40,24 +41,26 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider>
-          <ServiceStatusProvider>
-            <AuthProvider>
-              <WellnessProvider>
-                <NewsProvider>
-                  <PeriodProvider>
-                    <LoadingScreen />
-                    <div className="min-h-screen flex flex-col">
-                      <Navbar />
-                      <main className="flex-1 pt-16">{children}</main>
-                      <Footer />
-                      <ChatbotIcon />
-                  </div>
-                  <Toaster />
-                </PeriodProvider>
-              </NewsProvider>
-            </WellnessProvider>
-          </AuthProvider>
-        </ServiceStatusProvider>
+          <AsgardeoProvider>
+            <ServiceStatusProvider>
+              <AuthProvider>
+                <WellnessProvider>
+                  <NewsProvider>
+                    <PeriodProvider>
+                      <LoadingScreen />
+                      <div className="min-h-screen flex flex-col">
+                        <Navbar />
+                        <main className="flex-1 pt-16">{children}</main>
+                        <Footer />
+                        <ChatbotIcon />
+                    </div>
+                    <Toaster />
+                  </PeriodProvider>
+                </NewsProvider>
+              </WellnessProvider>
+            </AuthProvider>
+          </ServiceStatusProvider>
+        </AsgardeoProvider>
       </ThemeProvider>
     </body>
   </html>

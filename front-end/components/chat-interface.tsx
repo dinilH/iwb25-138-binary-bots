@@ -42,30 +42,35 @@ export default function ChatInterface() {
     scrollToBottom()
   }, [messages])
 
-  const generateBotResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase()
+  const getBotResponse = async (userMessage: string): Promise<string> => {
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
+      });
 
-    if (lowerMessage.includes("period") || lowerMessage.includes("menstruation")) {
-      return "I understand you have questions about your period. This is completely normal! Can you tell me more about what specific concerns you have? I can help with cycle tracking, symptoms, or general period health information."
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      return data.message || 'Sorry, I could not generate a response at the moment.';
+    } catch (error) {
+      console.error('Error getting bot response:', error);
+      return 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.';
     }
-
-    if (lowerMessage.includes("mood") || lowerMessage.includes("emotional") || lowerMessage.includes("sad")) {
-      return "I hear that you're dealing with emotional concerns. Your feelings are valid, and it's important to acknowledge them. Would you like to talk about what's been affecting your mood? I can also suggest some coping strategies that might help."
-    }
-
-    if (lowerMessage.includes("pain") || lowerMessage.includes("hurt")) {
-      return "I'm sorry you're experiencing pain. While I can provide general information and support, it's important to consult with a healthcare provider for persistent or severe pain. In the meantime, would you like some tips for managing discomfort?"
-    }
-
-    return "Thank you for sharing that with me. I'm here to listen and support you. Can you tell me more about what you're experiencing so I can better assist you?"
   }
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return
 
+    const currentInput = inputText;
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputText,
+      text: currentInput,
       sender: "user",
       timestamp: new Date(),
     }
@@ -74,18 +79,29 @@ export default function ChatInterface() {
     setInputText("")
     setIsTyping(true)
 
-    setTimeout(() => {
+    try {
+      const botResponseText = await getBotResponse(currentInput);
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateBotResponse(inputText),
+        text: botResponseText,
         sender: "bot",
         timestamp: new Date(),
         sentiment: "positive",
       }
 
       setMessages((prev) => [...prev, botResponse])
+    } catch (error) {
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble responding right now. Please try again.",
+        sender: "bot",
+        timestamp: new Date(),
+        sentiment: "negative",
+      }
+      setMessages((prev) => [...prev, errorResponse])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   const handleQuickTopic = (topic: string) => {

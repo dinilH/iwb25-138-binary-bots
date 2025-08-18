@@ -59,7 +59,7 @@ function attemptNewsFetch(http:Client httpClient, string basePath, string key) r
                     log:printError("Fallback auth also 401", mode = fallbackMode.toString(), body = body2);
                 }
             }
-            // Return secondary (even if error) so caller can decide next fallback (/top-headlines)
+           
             return secondary;
         }
     }
@@ -70,9 +70,9 @@ function executeNewsRequest(http:Client httpClient, string basePath, string key,
     map<string|string[]> headers = { "User-Agent": "SheCareNewsService/1.0" };
     string path = basePath;
     if (mode == HEADER) {
-        headers["X-Api-Key"] = key; // Official header method
+        headers["X-Api-Key"] = key; 
     } else if (mode == QUERY) {
-        path = path + "&apiKey=" + key; // Query param fallback
+        path = path + "&apiKey=" + key; 
     }
     log:printInfo("News API request", mode = mode.toString(), path = path);
     return httpClient->get(path, headers = headers);
@@ -89,7 +89,6 @@ function getBodySnippet(http:Response r) returns string {
     return "";
 }
 
-// Fallback to top-headlines (less restrictive) if everything endpoint consistently fails
 function fetchTopHeadlines(http:Client httpClient, string key) returns http:Response|error {
     string path = "/v2/top-headlines?category=health&language=en&pageSize=20";
     map<string|string[]> headers = {"X-Api-Key": key, "User-Agent": "SheCareNewsService/1.0"};
@@ -183,7 +182,7 @@ service /api/news on new http:Listener(8060) {
                 foreach json article in articlesArray {
                     string articleId = "news_" + index.toString();
                     
-                    // Safely extract fields with proper error handling
+
                     string title = "";
                     string description = "";
                     string articleUrl = "";
@@ -191,37 +190,37 @@ service /api/news on new http:Listener(8060) {
                     string publishedAt = "";
                     string sourceName = "Unknown Source";
                     
-                    // Extract title
+                    
                     json|error titleResult = article.title;
                     if (titleResult is json && titleResult is string) {
                         title = titleResult;
                     }
                     
-                    // Extract description
+                    
                     json|error descResult = article.description;
                     if (descResult is json && descResult is string) {
                         description = descResult;
                     }
                     
-                    // Extract URL
+                   
                     json|error urlResult = article.url;
                     if (urlResult is json && urlResult is string) {
                         articleUrl = urlResult;
                     }
                     
-                    // Extract image URL
+                    
                     json|error imageResult = article.urlToImage;
                     if (imageResult is json && imageResult is string) {
                         imageUrl = imageResult;
                     }
                     
-                    // Extract published date
+                    
                     json|error dateResult = article.publishedAt;
                     if (dateResult is json && dateResult is string) {
                         publishedAt = dateResult;
                     }
                     
-                    // Extract source name
+                    
                     json|error sourceResult = article.'source;
                     if (sourceResult is json) {
                         json|error nameResult = sourceResult.name;
@@ -230,10 +229,10 @@ service /api/news on new http:Listener(8060) {
                         }
                     }
                     
-                    // Categorize articles based on content analysis
+                    
                     string assignedCategory = categorizeArticle(title, description);
                     
-                    // Apply category filter if specified
+                    
                     if (category is string && category != "All" && assignedCategory != category) {
                         index += 1;
                         continue;
