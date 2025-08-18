@@ -46,7 +46,7 @@ export default function LoadingScreen() {
                   }}
                   className="w-full h-full bg-white rounded-full flex items-center justify-center text-6xl shadow-2xl"
                 >
-                  👩‍⚕️
+                    <img src="/favicon.png" alt="She Care Logo" className="absolute inset-0 w-full h-full object-cover rounded-full" />
                 </motion.div>
 
                 {/* Floating Hearts */}
