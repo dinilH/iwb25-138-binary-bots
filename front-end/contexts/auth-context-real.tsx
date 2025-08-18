@@ -48,15 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             resourceServerURLs: [],
             enablePKCE: true,
             clockTolerance: 300,
-            endpoints: {
-              authorizationEndpoint: "/oauth2/authorize",
-              tokenEndpoint: "/oauth2/token",
-              userinfoEndpoint: "/oauth2/userinfo",
-              logoutEndpoint: "/oidc/logout",
-              revokeTokenEndpoint: "/oauth2/revoke"
-            },
-            validateIDToken: true,
-            storage: "localStorage"
+            validateIDToken: true
           }
 
           const authClient = AsgardeoSPAClient.getInstance()

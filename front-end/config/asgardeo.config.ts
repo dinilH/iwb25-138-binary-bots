@@ -14,8 +14,7 @@ export const asgardeoConfig: AuthReactConfig = {
     authorizationEndpoint: "/oauth2/authorize",
     tokenEndpoint: "/oauth2/token",
     userinfoEndpoint: "/oauth2/userinfo",
-    logoutEndpoint: "/oidc/logout",
-    revokeTokenEndpoint: "/oauth2/revoke"
+    endSessionEndpoint: "/oidc/logout"
   },
   validateIDToken: true,
   storage: "localStorage" // Use localStorage for client-side storage
