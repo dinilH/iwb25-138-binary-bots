@@ -110,8 +110,6 @@ graph TB
     F[Google Gemini API] --> G[AI Chatbot]
     G --> A
     
-    H[WSO2 Asgardeo] --> I[Authentication]
-    I --> A
 ```
 
 ##  Testing the APIs
