@@ -1,18 +1,16 @@
 # SheCare - Women's Health & Wellness Platform
 
-## 🎯 Ballerina Competition Project
-
 A comprehensive women's health platform built with **pure Ballerina backend microservices** and a modern Next.js frontend. Features AI-powered health insights, period tracking, wellness monitoring, and personalized care recommendations.
 
 ## ✨ Key Features
 
-- 🩸 **Smart Period Tracking** - AI-powered cycle predictions and calendar
-- 💪 **Wellness Monitoring** - Mood, energy, sleep, and symptom tracking  
-- � **Health News** - Curated women's health articles and bookmarking
-- 🤖 **AI Health Assistant** - Google Gemini-powered chatbot for health queries
-- 🔐 **Secure Authentication** - WSO2 Asgardeo OAuth integration
-- � **Analytics & Insights** - Beautiful charts and wellness trends
-- 🎨 **Modern UI** - Responsive design with Tailwind CSS and shadcn/ui
+- **Smart Period Tracking** - AI-powered cycle predictions and calendar
+- **Wellness Monitoring** - Mood, energy, sleep, and symptom tracking  
+- **Health News** - Curated women's health articles and bookmarking
+- **AI Health Assistant** - Google Gemini-powered chatbot for health queries
+- **Secure Authentication** - WSO2 Asgardeo OAuth integration
+- **Analytics & Insights** - Beautiful charts and wellness trends
+- **Modern UI** - Responsive design with Tailwind CSS and shadcn/ui
 
 ## 🚀 Quick Start
 
@@ -56,7 +54,7 @@ npm run dev
 - **News API**: http://localhost:8060  
 - **Period API**: http://localhost:8081
 
-## 🏗️ Architecture
+## Architecture
 
 ### Backend Services (Pure Ballerina)
 
@@ -70,7 +68,7 @@ Our backend consists of three independent Ballerina microservices:
    PUT  /api/wellness/entries/{date}      # Update wellness entry
    ```
 
-2. **📰 News Service** - `http://localhost:8060`  
+2. ** News Service** - `http://localhost:8060`  
    ```bash
    GET  /api/news/health                  # Service health check
    GET  /api/news/articles                # Get categorized health news
@@ -78,7 +76,7 @@ Our backend consists of three independent Ballerina microservices:
    GET  /api/news/bookmarks/{userId}      # Get user bookmarks
    ```
 
-3. **🩸 Period Service** - `http://localhost:8081`
+3. ** Period Service** - `http://localhost:8081`
    ```bash
    GET  /api/period/health                # Service health check
    POST /api/period/predict               # Generate cycle predictions
@@ -96,27 +94,7 @@ Our backend consists of three independent Ballerina microservices:
 - **Animations**: Framer Motion
 - **AI Integration**: Google Gemini API for chatbot
 
-## 🔧 Recent Improvements
-
-### ✅ **Fixed Issues**
-- **Server Component Errors**: Resolved Next.js SSR issues with theme provider
-- **TypeScript Compilation**: Fixed all chart component type errors
-- **Component Architecture**: Cleaned up duplicate contexts and components
-- **Build Process**: Optimized for production deployment
-
-### ✅ **Enhanced Features**  
-- **AI Chatbot**: Integrated Google Gemini for health-focused conversations
-- **Real-time Status**: Service availability indicators in navigation
-- **Error Boundaries**: Graceful error handling throughout the app
-- **Loading States**: Improved UX with skeleton loaders and animations
-
-### ✅ **Code Quality**
-- **Clean Architecture**: Removed unused files and duplicate code
-- **TypeScript**: Full type safety across all components
-- **Performance**: Optimized bundle size and load times
-- **Documentation**: Updated README and inline documentation
-
-## � Data Flow Architecture
+## Data Flow Architecture
 
 ```mermaid
 graph TB
@@ -136,7 +114,7 @@ graph TB
     I --> A
 ```
 
-## 🧪 Testing the APIs
+##  Testing the APIs
 
 Each Ballerina service provides health check endpoints for monitoring:
 
@@ -147,60 +125,31 @@ curl http://localhost:8060/api/news/health
 curl http://localhost:8081/api/period/health
 ```
 
-## 🌟 Core Features in Detail
+##  Core Features in Detail
 
-### 🩸 **Period Tracking**
-- **Smart Predictions**: ML-based cycle forecasting
+###  **Period Tracking**
+- **Smart Predictions**: cycle forecasting
 - **Calendar View**: 90-day period tracking calendar
 - **Fertility Windows**: Ovulation and fertile period calculations
 - **Cycle Analytics**: Trend analysis and irregularity detection
 
-### 💪 **Wellness Monitoring**  
+###  **Wellness Monitoring**  
 - **Mood Tracking**: Daily emotional state logging
 - **Energy Levels**: Physical energy and activity monitoring
 - **Sleep Quality**: Sleep duration and quality assessment
 - **Symptom Correlation**: Pattern recognition across health metrics
 
-### 📰 **Health News**
+###  **Health News**
 - **Curated Content**: Women's health focused articles
 - **Smart Categorization**: AI-powered content classification
 - **Bookmark System**: Save articles for later reading
 - **Personalized Feed**: Recommendations based on user interests
 
-### � **AI Health Assistant**
+###  **AI Health Assistant**
 - **24/7 Availability**: Always-on health guidance
 - **Context-Aware**: Understanding of women's health topics
 - **Privacy-First**: Secure conversation handling
 - **Multi-lingual**: Support for various languages
-
-## � Security & Privacy
-
-- **OAuth 2.0**: Secure authentication via WSO2 Asgardeo
-- **Data Encryption**: All communications encrypted in transit
-- **Privacy Controls**: User data ownership and control
-- **Compliance**: GDPR and healthcare privacy standards
-
-## 🎨 UI/UX Design
-
-- **Responsive Design**: Mobile-first approach
-- **Accessibility**: WCAG 2.1 AA compliance
-- **Dark/Light Themes**: User preference support
-- **Intuitive Navigation**: Clear information architecture
-- **Smooth Animations**: Framer Motion powered interactions
-
-## � Development & Deployment
-
-### Development Mode
-```bash
-# Frontend with hot reload
-cd front-end && npm run dev
-
-# Build for production
-cd front-end && npm run build
-
-# Start production server  
-cd front-end && npm start
-```
 
 ### Environment Variables
 ```bash
@@ -220,7 +169,7 @@ docker-compose build
 docker-compose up
 ```
 
-## 🛠️ Tech Stack Summary
+##  Tech Stack Summary
 
 ### Backend
 - **Language**: Ballerina 
@@ -243,7 +192,7 @@ docker-compose up
 - **News**: Integrated news aggregation
 - **Authentication**: WSO2 Identity Server
 
-## 🤝 Contributing
+##  Contributing
 
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
@@ -251,7 +200,7 @@ docker-compose up
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. **Open** a Pull Request
 
-## 📝 Project Structure
+##  Project Structure
 
 ```
 SheCare/
@@ -267,16 +216,6 @@ SheCare/
 │   └── lib/                  # Utility functions
 └── README.md                 # Project documentation
 ```
-
-## 🏆 Achievements
-
-✅ **Full-Stack Application** - Complete frontend-backend integration  
-✅ **Microservices Architecture** - 3 independent Ballerina services  
-✅ **Modern UI/UX** - Responsive design with smooth animations  
-✅ **AI Integration** - Smart health assistant with Google Gemini  
-✅ **Type Safety** - Full TypeScript implementation  
-✅ **Production Ready** - Optimized build and deployment configuration  
-
 ## 📞 Support
 
 For questions, issues, or contributions:
@@ -287,5 +226,3 @@ For questions, issues, or contributions:
 ---
 
 **Built with ❤️ for the Ballerina Competition 2025**
-
-*Empowering women through technology and data-driven health insights.*
