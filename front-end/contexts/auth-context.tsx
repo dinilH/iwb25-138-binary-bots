@@ -7,14 +7,20 @@ interface User {
   email: string
   name: string
   avatar?: string
+  firstName?: string
+  lastName?: string
+  isEmailVerified?: boolean
+  organization?: string
 }
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (email: string, password: string, name: string) => Promise<boolean>
-  logout: () => void
+  login: () => Promise<void>
+  logout: () => Promise<void>
+  refreshUser: () => Promise<void>
   isLoading: boolean
+  isAuthenticated: boolean
+  error: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,70 +28,133 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // Initialize - check for existing session
   useEffect(() => {
-    // Check for stored user data on mount
-    const storedUser = localStorage.getItem("shecare_user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-    setIsLoading(false)
+    checkAuthStatus()
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const checkAuthStatus = async () => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch('/api/auth/user', {
+        method: 'GET',
+        credentials: 'include',
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.isAuthenticated && data.user) {
+          setUser(data.user)
+          setIsAuthenticated(true)
+        } else {
+          setUser(null)
+          setIsAuthenticated(false)
+        }
+      } else {
+        setUser(null)
+        setIsAuthenticated(false)
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error)
+      setUser(null)
+      setIsAuthenticated(false)
+    }
+    setIsLoading(false)
+  }
 
-      const userData: User = {
-        id: "1",
-        email,
-        name: email.split("@")[0],
-        avatar: "/placeholder-user.jpg",
+  const login = async (): Promise<void> => {
+    try {
+      setError(null)
+      console.log("Attempting to redirect to Asgardeo...")
+      
+      // Create the Asgardeo sign-in URL
+      const clientId = process.env.NEXT_PUBLIC_ASGARDEO_CLIENT_ID
+      const baseUrl = process.env.NEXT_PUBLIC_ASGARDEO_BASE_URL
+      const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/callback`
+      
+      if (!clientId || !baseUrl) {
+        throw new Error("Asgardeo configuration missing")
       }
 
-      setUser(userData)
-      localStorage.setItem("shecare_user", JSON.stringify(userData))
-      return true
-    } catch (error) {
-      console.error("Login error:", error)
-      return false
-    } finally {
-      setIsLoading(false)
+      // Construct the authorization URL
+      const authUrl = new URL(`${baseUrl}/oauth2/authorize`)
+      authUrl.searchParams.set('client_id', clientId)
+      authUrl.searchParams.set('redirect_uri', redirectUri)
+      authUrl.searchParams.set('response_type', 'code')
+      authUrl.searchParams.set('scope', 'openid profile email')
+      authUrl.searchParams.set('state', Math.random().toString(36).substring(7))
+
+      console.log("Redirecting to:", authUrl.toString())
+      
+      // Redirect to Asgardeo
+      window.location.href = authUrl.toString()
+      
+    } catch (err) {
+      console.error("Login error:", err)
+      let errorMessage = "Failed to sign in. Please try again."
+      
+      if (err instanceof Error) {
+        if (err.message.includes("configuration missing")) {
+          errorMessage = "Authentication service configuration is missing."
+        }
+      }
+      
+      setError(errorMessage)
+      throw err
     }
   }
 
-  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
-    setIsLoading(true)
+  const logout = async (): Promise<void> => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const userData: User = {
-        id: Date.now().toString(),
-        email,
-        name,
-        avatar: "/placeholder-user.jpg",
+      setError(null)
+      
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      
+      if (response.ok) {
+        setUser(null)
+        setIsAuthenticated(false)
+        console.log("Signed out successfully")
+        // Optionally redirect to home page
+        window.location.href = '/'
+      } else {
+        console.error('Logout failed')
+        setError("Failed to sign out. Please try again.")
       }
-
-      setUser(userData)
-      localStorage.setItem("shecare_user", JSON.stringify(userData))
-      return true
-    } catch (error) {
-      console.error("Signup error:", error)
-      return false
-    } finally {
-      setIsLoading(false)
+    } catch (err) {
+      console.error("Logout error:", err)
+      setError("Failed to sign out. Please try again.")
+      // Clear local state even if API call fails
+      setUser(null)
+      setIsAuthenticated(false)
+      throw err
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("shecare_user")
+  const refreshUser = async (): Promise<void> => {
+    await checkAuthStatus()
   }
 
-  return <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        login, 
+        logout, 
+        refreshUser,
+        isLoading, 
+        isAuthenticated,
+        error 
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
