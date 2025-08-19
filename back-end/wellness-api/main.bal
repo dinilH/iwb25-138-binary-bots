@@ -8,7 +8,7 @@ import ballerina/log;
 
 //TYPE DEFINITIONS
 
-// Wellness tracking entry for daily health metrics
+// Wellness tracking entry 
 type WellnessEntry record {
     string userId;              // Unique user identifier
     string date;                // Entry date in YYYY-MM-DD format
@@ -19,7 +19,6 @@ type WellnessEntry record {
     string notes?;              // Optional wellness notes
 };
 
-// DATA STORAGE
 // In-memory storage for demonstration (production would use a database)
 map<WellnessEntry[]> wellnessStore = {};
 
@@ -35,10 +34,8 @@ map<WellnessEntry[]> wellnessStore = {};
 }
 service /api/wellness on new http:Listener(8082) {
 
-    // ========== HEALTH CHECK ENDPOINT ==========
-    // Health check endpoint to verify service availability
-    // @return JSON response with service status
-    resource function get health() returns json {
+    // HEALTH CHECK ENDPOINT
+       resource function get health() returns json {
         log:printInfo("Wellness service health check - Pure Ballerina implementation");
         return {
             success: true,
@@ -47,11 +44,9 @@ service /api/wellness on new http:Listener(8082) {
         };
     }
 
-    // ========== WELLNESS ENTRY ENDPOINTS ==========
+    // WELLNESS ENTRY ENDPOINTS 
     
     // Add a new wellness entry for a user
-    // @param entry - Wellness entry data (mood, energy, sleep, etc.)
-    // @return JSON response with success status
     resource function post entries(@http:Payload WellnessEntry entry) returns json {
         log:printInfo("Adding wellness entry for user: " + entry.userId);
         
@@ -68,8 +63,6 @@ service /api/wellness on new http:Listener(8082) {
     }
 
     // Get all wellness entries for a specific user
-    // @param userId - User identifier in URL path
-    // @return JSON response with user's wellness history
     resource function get users/[string userId]/entries() returns json {
         log:printInfo("Fetching wellness entries for user: " + userId);
         
