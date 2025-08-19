@@ -2,7 +2,7 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/url;
 
-final string apiKey = "142fd5038dc845f4baa51e12c1f67ba2";
+final string apiKey = "";
 
 enum AuthMode { HEADER, QUERY }
 final AuthMode PRIMARY_AUTH_MODE = HEADER;
