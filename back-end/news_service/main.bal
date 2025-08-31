@@ -2,6 +2,8 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/url;
 
+//Place your news API key here
+
 final string apiKey = "";
 
 enum AuthMode { HEADER, QUERY }
