@@ -12,7 +12,7 @@ A comprehensive women's health platform built with **pure Ballerina backend micr
 - **Analytics & Insights** - Beautiful charts and wellness trends
 - **Modern UI** - Responsive design with Tailwind CSS and shadcn/ui
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - [Ballerina](https://ballerina.io/) (for backend services)
@@ -37,8 +37,12 @@ bal run
 ### 2. Configure Environment
 ```bash
 cd front-end
-cp .env.example .env.local
+
+.env.local
 # Add your Google Gemini API key to .env.local
+
+cd back-end/news_service/main.bal
+Place your newsapi.org api key in the placeholder
 ```
 
 ### 3. Start Frontend
